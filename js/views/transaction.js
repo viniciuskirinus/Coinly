@@ -3,6 +3,7 @@ import { dispatch } from '../modules/github-api.js';
 import { formatCurrency, getCurrentYearMonth } from '../modules/format.js';
 import { getState, setState, addPendingSync, resolvePendingSync } from '../modules/state.js';
 import { showAlert } from '../app.js';
+import { isGeminiConfigured, suggestCategory } from '../modules/gemini.js';
 
 export async function initTransaction() {
   const section = document.getElementById('view-transaction');
@@ -56,6 +57,7 @@ function render(section, config, categories, paymentMethods) {
         <div class="form-group">
           <label class="form-label" for="txn-description">Descrição</label>
           <input type="text" id="txn-description" class="form-input" placeholder="Ex: Supermercado, Salário..." required>
+          <div id="txn-ai-hint" style="display:none;margin-top:4px;padding:6px 10px;border-radius:8px;background:var(--color-surface-hover);font-size:var(--font-size-sm);display:none;align-items:center;gap:6px;flex-wrap:wrap"></div>
         </div>
 
         <div class="form-group">
@@ -178,6 +180,65 @@ function bindEvents(section, config, categories, people) {
     e.preventDefault();
     await handleSubmit(section, config, categories, people, currentType);
   });
+
+  let aiDebounce = null;
+  const descInput = section.querySelector('#txn-description');
+  const aiHint = section.querySelector('#txn-ai-hint');
+
+  if (descInput && aiHint && isGeminiConfigured()) {
+    descInput.addEventListener('input', () => {
+      clearTimeout(aiDebounce);
+      const text = descInput.value.trim();
+      if (text.length < 3) {
+        aiHint.style.display = 'none';
+        return;
+      }
+      aiDebounce = setTimeout(async () => {
+        try {
+          const suggestion = await suggestCategory(text, categories);
+          if (!suggestion?.category) { aiHint.style.display = 'none'; return; }
+
+          if (suggestion.type && suggestion.type !== currentType) {
+            const matchBtn = section.querySelector(`.toggle-option[data-value="${suggestion.type}"]`);
+            if (matchBtn) {
+              toggleBtns.forEach(b => b.classList.remove('active'));
+              matchBtn.classList.add('active');
+              currentType = suggestion.type;
+              populateCategories(currentType);
+            }
+          }
+
+          aiHint.innerHTML = '';
+          aiHint.style.display = 'flex';
+
+          const label = document.createElement('span');
+          label.textContent = `💡 Sugestão: ${suggestion.category}`;
+          label.style.color = 'var(--color-text-secondary)';
+
+          const acceptBtn = document.createElement('button');
+          acceptBtn.type = 'button';
+          acceptBtn.className = 'btn btn-ghost';
+          acceptBtn.style.cssText = 'padding:2px 8px;font-size:var(--font-size-sm);min-height:0';
+          acceptBtn.textContent = 'Aceitar';
+          acceptBtn.addEventListener('click', () => {
+            categorySelect.value = suggestion.category;
+            categorySelect.dispatchEvent(new Event('change'));
+            if (suggestion.subcategory) {
+              setTimeout(() => {
+                const subSel = section.querySelector('#txn-subcategory');
+                if (subSel) subSel.value = suggestion.subcategory;
+              }, 50);
+            }
+            aiHint.style.display = 'none';
+          });
+
+          aiHint.append(label, acceptBtn);
+        } catch {
+          aiHint.style.display = 'none';
+        }
+      }, 500);
+    });
+  }
 }
 
 function getCreditCardAdjustedMonth(dateStr, people, section) {

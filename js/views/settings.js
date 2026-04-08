@@ -3,6 +3,7 @@ import { dispatch } from '../modules/github-api.js';
 import { isWizardDone, getRepoConfig } from '../modules/storage.js';
 import { formatCurrency } from '../modules/format.js';
 import { showAlert } from '../app.js';
+import { getGeminiKey, saveGeminiKey, isGeminiConfigured, testApiKey } from '../modules/gemini.js';
 
 let state = {
   config: null,
@@ -663,6 +664,117 @@ function buildRepoContent(container) {
   );
 }
 
+// ─── Gemini AI Section ───
+
+function buildGeminiContent(container) {
+  const configured = isGeminiConfigured();
+  const currentKey = getGeminiKey();
+
+  const statusRow = el('div', {
+    style: { display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)' }
+  });
+  statusRow.append(
+    el('span', { style: { fontSize: '20px' } }, configured ? '✅' : '⚠️'),
+    el('span', { style: { fontWeight: '600' } }, configured ? 'Chave configurada' : 'Chave não configurada')
+  );
+  container.append(statusRow);
+
+  const keyGroup = el('div', { className: 'form-group' });
+  keyGroup.append(el('label', { className: 'form-label' }, 'Chave da API'));
+
+  const inputRow = el('div', { style: { display: 'flex', gap: 'var(--space-sm)' } });
+  const keyInput = el('input', {
+    className: 'form-input',
+    type: 'password',
+    id: 'gemini-key-input',
+    value: currentKey,
+    placeholder: 'Cole sua chave da API Gemini aqui',
+    style: { flex: '1' }
+  });
+
+  const toggleBtn = el('button', {
+    className: 'btn btn-ghost',
+    type: 'button',
+    title: 'Mostrar/ocultar chave',
+    onClick: () => {
+      const inp = document.getElementById('gemini-key-input');
+      if (inp) {
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        toggleBtn.textContent = inp.type === 'password' ? '👁️' : '🙈';
+      }
+    }
+  }, '👁️');
+
+  inputRow.append(keyInput, toggleBtn);
+  keyGroup.append(inputRow);
+  container.append(keyGroup);
+
+  const actions = el('div', { style: { display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-md)', flexWrap: 'wrap' } });
+
+  const saveBtn = el('button', {
+    className: 'btn btn-primary',
+    onClick: () => {
+      const inp = document.getElementById('gemini-key-input');
+      const val = inp?.value.trim();
+      saveGeminiKey(val);
+      showAlert(val ? 'Chave salva com sucesso!' : 'Chave removida.', 'success');
+      render();
+    }
+  }, '💾 Salvar');
+
+  const testBtn = el('button', {
+    className: 'btn btn-ghost',
+    id: 'gemini-test-btn',
+    onClick: async () => {
+      const inp = document.getElementById('gemini-key-input');
+      const val = inp?.value.trim();
+      if (!val) { showAlert('Digite uma chave para testar.', 'error'); return; }
+
+      const btn = document.getElementById('gemini-test-btn');
+      btn.disabled = true;
+      btn.textContent = 'Testando...';
+
+      try {
+        const result = await testApiKey(val);
+        if (result.success) {
+          showAlert('Conexão com Gemini OK!', 'success');
+        } else {
+          showAlert(`Falha no teste: ${result.error}`, 'error');
+        }
+      } catch (err) {
+        showAlert(`Erro: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔗 Testar Conexão';
+      }
+    }
+  }, '🔗 Testar Conexão');
+
+  const clearBtn = el('button', {
+    className: 'btn btn-ghost',
+    style: { color: 'var(--color-expense)' },
+    onClick: () => {
+      if (!confirm('Remover a chave da API Gemini?')) return;
+      saveGeminiKey('');
+      showAlert('Chave removida.', 'success');
+      render();
+    }
+  }, '🗑️ Remover');
+
+  actions.append(saveBtn, testBtn);
+  if (configured) actions.append(clearBtn);
+  container.append(actions);
+
+  const infoText = el('p', {
+    style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--space-lg)', lineHeight: '1.5' }
+  });
+  infoText.append(
+    document.createTextNode('A chave é armazenada apenas no navegador (localStorage). Obtenha sua chave em: '),
+    el('a', { href: 'https://aistudio.google.com/apikey', target: '_blank', rel: 'noopener', style: { color: 'var(--color-secondary)' } }, 'aistudio.google.com')
+  );
+  container.append(infoText);
+}
+
 // ─── Main Render ───
 
 function render() {
@@ -684,6 +796,7 @@ function render() {
   section.append(buildAccordion('orcamento', '📊 Orçamento', buildBudgetContent));
   section.append(buildAccordion('pagamento', '💳 Métodos de Pagamento', buildPaymentContent));
   section.append(buildAccordion('repo', '🔗 Repositório', buildRepoContent));
+  section.append(buildAccordion('gemini', '🤖 Gemini AI', buildGeminiContent));
 }
 
 // ─── Init ───
