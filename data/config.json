@@ -36,10 +36,13 @@
     "name": "CONTROLE_FINANCEIRO",
     "owner": "viniciuskirinus"
   },
-  "updatedAt": "2026-04-08T19:53:08.777Z",
+  "updatedAt": "2026-04-08T21:26:13.630Z",
   "budgets": {
     "vinicius": {
       "Transporte": 10
     }
-  }
+  },
+  "encryptedSecrets": "tCNrYhFdaQs4+6x5iJG4z88AyhRvP0yLw2yYemC9Nz27N53uCi4Pa3HKogoXo0tkLVNUY9Sw55MKk90Wf+Nr03LNYVRMmvtjqUdG+kBc8xrNc/MV/m4sbl5AoXXai74AgWm0KGe82bV4lywUzjXRkECyOPb8qOyJeC1D9Wu3uG8U8/Sq6JViZ/jHIXnf3VNfaZAYaP3d0fCIyy6A5ls6Mok2PHiqpFZTaIrUpAxIKoPKcuZXoFWSXr4=",
+  "geminiModel": "gemini-3.1-flash-lite-preview",
+  "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
 }
