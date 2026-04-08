@@ -210,6 +210,17 @@ export async function testApiKey(key, model) {
 }
 
 export async function compressImage(file, maxSizeKB = 1024) {
+  if (file.type === 'application/pdf') {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target.result.split(',')[1];
+        resolve({ base64, mimeType: 'application/pdf' });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {

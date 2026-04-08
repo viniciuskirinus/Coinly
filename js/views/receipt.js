@@ -110,7 +110,7 @@ function buildUploadArea(onFileSelected) {
 
   const input = el('input', {
     type: 'file',
-    accept: 'image/jpeg,image/png,image/webp,image/heic',
+    accept: 'image/jpeg,image/png,image/webp,image/heic,application/pdf',
     style: { display: 'none' }
   });
 
@@ -139,8 +139,8 @@ function buildUploadArea(onFileSelected) {
   area.append(
     input,
     el('div', { style: { fontSize: '48px', marginBottom: 'var(--sp-4)' } }, '📷'),
-    el('p', { style: { fontWeight: '600', marginBottom: 'var(--sp-1)' } }, 'Clique ou arraste uma imagem'),
-    el('p', { style: { color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' } }, 'JPG, PNG, WebP ou HEIC')
+    el('p', { style: { fontWeight: '600', marginBottom: 'var(--sp-1)' } }, 'Clique ou arraste um arquivo'),
+    el('p', { style: { color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' } }, 'JPG, PNG, WebP, HEIC ou PDF')
   );
 
   return area;

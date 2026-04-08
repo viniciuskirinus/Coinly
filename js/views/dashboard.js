@@ -131,10 +131,6 @@ function renderSummary(transactions, config) {
       <div class="summary-card__label">Despesas</div>
       <div class="summary-card__value">${formatCurrency(expense)}</div>
     </div>
-    <div class="summary-card summary-card--${balance >= 0 ? 'positive' : 'negative'}">
-      <div class="summary-card__label">Saldo</div>
-      <div class="summary-card__value">${formatCurrency(balance)}</div>
-    </div>
   `;
 
   container.innerHTML = html;

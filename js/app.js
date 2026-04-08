@@ -120,10 +120,13 @@ async function restoreConfigFromGit() {
 
 // ── Auth Gate ──
 
-async function checkAuth(config) {
-  const pinHash = config?.pinHash;
-  if (!pinHash) return true;
+async function checkAuth() {
   if (isAuthenticated()) return true;
+
+  let cfg;
+  try { cfg = await getConfig(); } catch { return true; }
+  const pinHash = cfg?.pinHash;
+  if (!pinHash) return true;
 
   return new Promise((resolve) => {
     const appLayout = document.getElementById('app-layout');
@@ -155,8 +158,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isFirstRun) {
     startWizard();
   } else {
-    const config = await restoreConfigFromGit();
-    await checkAuth(config);
+    await restoreConfigFromGit();
+    await checkAuth();
     navigate('dashboard');
     if (!isRepoConfigured()) {
       showAlert('PAT nao configurado. Va em Config > Repositorio e cole seu Personal Access Token.', 'warning');
