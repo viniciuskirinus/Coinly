@@ -1,6 +1,13 @@
 const GEMINI_KEY = 'financeirovk_gemini_key';
-const GEMINI_MODEL = 'gemini-2.0-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const GEMINI_MODEL_KEY = 'financeirovk_gemini_model';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
+
+const AVAILABLE_MODELS = [
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (estável, 20 req/dia)' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite (estável, 20 req/dia)' },
+  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite (500 req/dia!)' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (20 req/dia)' },
+];
 
 export function getGeminiKey() {
   return localStorage.getItem(GEMINI_KEY) || '';
@@ -11,15 +18,35 @@ export function saveGeminiKey(key) {
   else localStorage.removeItem(GEMINI_KEY);
 }
 
+export function getGeminiModel() {
+  return localStorage.getItem(GEMINI_MODEL_KEY) || DEFAULT_MODEL;
+}
+
+export function saveGeminiModel(model) {
+  localStorage.setItem(GEMINI_MODEL_KEY, model);
+}
+
+export function getAvailableModels() {
+  return AVAILABLE_MODELS;
+}
+
 export function isGeminiConfigured() {
   return !!getGeminiKey();
+}
+
+function getApiUrl() {
+  const model = getGeminiModel();
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 }
 
 async function callGemini(parts) {
   const key = getGeminiKey();
   if (!key) throw new Error('Chave da API Gemini não configurada.');
 
-  const resp = await fetch(`${GEMINI_URL}?key=${key}`, {
+  const url = getApiUrl();
+  console.log(`[Gemini] modelo: ${getGeminiModel()}`);
+
+  const resp = await fetch(`${url}?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts }] })
@@ -30,7 +57,7 @@ async function callGemini(parts) {
     const msg = body?.error?.message || `HTTP ${resp.status}`;
     if (resp.status === 400) throw new Error(`Requisição inválida: ${msg}`);
     if (resp.status === 403) throw new Error('Chave da API sem permissão. Verifique nas configurações.');
-    if (resp.status === 429) throw new Error('Limite de requisições atingido. Aguarde um momento.');
+    if (resp.status === 429) throw new Error('Limite de requisições atingido. Troque o modelo nas configurações ou aguarde.');
     throw new Error(`Erro da API Gemini: ${msg}`);
   }
 
@@ -162,8 +189,11 @@ Regras:
   return extractJSON(text);
 }
 
-export async function testApiKey(key) {
-  const resp = await fetch(`${GEMINI_URL}?key=${key}`, {
+export async function testApiKey(key, model) {
+  const testModel = model || getGeminiModel();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${testModel}:generateContent`;
+
+  const resp = await fetch(`${url}?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -174,6 +204,7 @@ export async function testApiKey(key) {
   if (resp.ok) return { success: true };
   if (resp.status === 400) return { success: false, error: 'Chave inválida ou modelo não disponível.' };
   if (resp.status === 403) return { success: false, error: 'Chave sem permissão para este modelo.' };
+  if (resp.status === 429) return { success: false, error: 'Cota excedida para este modelo. Tente outro modelo.' };
   const body = await resp.json().catch(() => null);
   return { success: false, error: body?.error?.message || `Erro HTTP ${resp.status}` };
 }

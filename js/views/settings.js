@@ -3,7 +3,7 @@ import { dispatch, testConnection } from '../modules/github-api.js';
 import { isWizardDone, getRepoConfig, saveRepoConfig } from '../modules/storage.js';
 import { formatCurrency } from '../modules/format.js';
 import { showAlert } from '../app.js';
-import { getGeminiKey, saveGeminiKey, isGeminiConfigured, testApiKey } from '../modules/gemini.js';
+import { getGeminiKey, saveGeminiKey, isGeminiConfigured, testApiKey, getGeminiModel, saveGeminiModel, getAvailableModels } from '../modules/gemini.js';
 
 let state = {
   config: null,
@@ -799,6 +799,18 @@ function buildGeminiContent(container) {
   keyGroup.append(inputRow);
   container.append(keyGroup);
 
+  const modelGroup = el('div', { className: 'form-group', style: { marginTop: 'var(--space-md)' } });
+  modelGroup.append(el('label', { className: 'form-label' }, 'Modelo'));
+  const modelSelect = el('select', { className: 'form-input', id: 'gemini-model-select' });
+  const currentModel = getGeminiModel();
+  getAvailableModels().forEach(m => {
+    const opt = el('option', { value: m.id }, m.name);
+    if (m.id === currentModel) opt.selected = true;
+    modelSelect.append(opt);
+  });
+  modelGroup.append(modelSelect);
+  container.append(modelGroup);
+
   const actions = el('div', { style: { display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-md)', flexWrap: 'wrap' } });
 
   const saveBtn = el('button', {
@@ -806,8 +818,10 @@ function buildGeminiContent(container) {
     onClick: () => {
       const inp = document.getElementById('gemini-key-input');
       const val = inp?.value.trim();
+      const selModel = document.getElementById('gemini-model-select')?.value;
       saveGeminiKey(val);
-      showAlert(val ? 'Chave salva com sucesso!' : 'Chave removida.', 'success');
+      if (selModel) saveGeminiModel(selModel);
+      showAlert(val ? 'Chave e modelo salvos!' : 'Chave removida.', 'success');
       render();
     }
   }, '💾 Salvar');
@@ -818,6 +832,7 @@ function buildGeminiContent(container) {
     onClick: async () => {
       const inp = document.getElementById('gemini-key-input');
       const val = inp?.value.trim();
+      const selModel = document.getElementById('gemini-model-select')?.value;
       if (!val) { showAlert('Digite uma chave para testar.', 'error'); return; }
 
       const btn = document.getElementById('gemini-test-btn');
@@ -825,9 +840,9 @@ function buildGeminiContent(container) {
       btn.textContent = 'Testando...';
 
       try {
-        const result = await testApiKey(val);
+        const result = await testApiKey(val, selModel);
         if (result.success) {
-          showAlert('Conexão com Gemini OK!', 'success');
+          showAlert(`Conexão OK com ${selModel}!`, 'success');
         } else {
           showAlert(`Falha no teste: ${result.error}`, 'error');
         }
