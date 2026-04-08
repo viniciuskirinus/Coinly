@@ -44,6 +44,10 @@
   z-index: 200;
 }
 
+.wizard-overlay[hidden] {
+  display: none !important;
+}
+
 .wizard-container {
   background: var(--color-card);
   border-radius: var(--radius-lg);
