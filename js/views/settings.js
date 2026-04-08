@@ -1,6 +1,6 @@
 import { getConfig, getCategories, getPaymentMethods, invalidateCache } from '../modules/data-service.js';
-import { dispatch } from '../modules/github-api.js';
-import { isWizardDone, getRepoConfig } from '../modules/storage.js';
+import { dispatch, testConnection } from '../modules/github-api.js';
+import { isWizardDone, getRepoConfig, saveRepoConfig } from '../modules/storage.js';
 import { formatCurrency } from '../modules/format.js';
 import { showAlert } from '../app.js';
 import { getGeminiKey, saveGeminiKey, isGeminiConfigured, testApiKey } from '../modules/gemini.js';
@@ -640,26 +640,74 @@ function removePaymentMethod(index) {
 function buildRepoContent(container) {
   const repo = getRepoConfig();
 
-  const info = el('div', { style: { display: 'grid', gap: 'var(--space-sm)' } });
-  info.append(
-    el('div', {},
-      el('span', { style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' } }, 'Proprietário: '),
-      el('strong', {}, repo.owner || '—')
-    ),
-    el('div', {},
-      el('span', { style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' } }, 'Repositório: '),
-      el('strong', {}, repo.repo || '—')
-    ),
-    el('div', {},
-      el('span', { style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' } }, 'Status: '),
-      el('span', { style: { color: 'var(--color-income)', fontWeight: '700' } }, '✅ Conectado')
-    )
+  const form = el('div', { style: { display: 'grid', gap: 'var(--space-md)' } });
+
+  const ownerGroup = el('div', { className: 'form-group' });
+  ownerGroup.append(
+    el('label', { className: 'form-label', htmlFor: 'set-repo-owner' }, 'Dono do repositório'),
+    Object.assign(el('input', { className: 'form-input', type: 'text', id: 'set-repo-owner', placeholder: 'seu-usuario-github' }), { value: repo.owner || '' })
   );
 
-  container.append(info);
+  const repoGroup = el('div', { className: 'form-group' });
+  repoGroup.append(
+    el('label', { className: 'form-label', htmlFor: 'set-repo-name' }, 'Nome do repositório'),
+    Object.assign(el('input', { className: 'form-input', type: 'text', id: 'set-repo-name', placeholder: 'CONTROLE_FINANCEIRO' }), { value: repo.repo || '' })
+  );
+
+  const patGroup = el('div', { className: 'form-group' });
+  patGroup.append(
+    el('label', { className: 'form-label', htmlFor: 'set-repo-pat' }, 'Personal Access Token (PAT)'),
+    Object.assign(el('input', { className: 'form-input', type: 'password', id: 'set-repo-pat', placeholder: 'github_pat_...' }), { value: repo.pat || '' })
+  );
+
+  const statusEl = el('div', { id: 'repo-conn-status', style: { marginTop: 'var(--space-sm)' } });
+
+  const actions = el('div', { style: { display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' } });
+
+  const testBtn = el('button', { className: 'btn btn-ghost', type: 'button' }, '🔗 Testar Conexão');
+  const saveBtn = el('button', { className: 'btn btn-primary', type: 'button' }, '💾 Salvar');
+
+  testBtn.addEventListener('click', async () => {
+    const owner = document.getElementById('set-repo-owner').value.trim();
+    const repoName = document.getElementById('set-repo-name').value.trim();
+    const pat = document.getElementById('set-repo-pat').value.trim();
+    if (!owner || !repoName || !pat) {
+      statusEl.innerHTML = '<div class="alert alert-error">Preencha todos os campos.</div>';
+      return;
+    }
+    testBtn.disabled = true;
+    testBtn.textContent = 'Testando...';
+    saveRepoConfig({ owner, repo: repoName, pat });
+    const result = await testConnection();
+    testBtn.disabled = false;
+    testBtn.textContent = '🔗 Testar Conexão';
+    if (result.success) {
+      statusEl.innerHTML = '<div class="alert alert-success">✅ Conexão estabelecida!</div>';
+    } else {
+      statusEl.innerHTML = `<div class="alert alert-error">❌ ${result.error || 'Falha na conexão'}</div>`;
+    }
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const owner = document.getElementById('set-repo-owner').value.trim();
+    const repoName = document.getElementById('set-repo-name').value.trim();
+    const pat = document.getElementById('set-repo-pat').value.trim();
+    if (!owner || !repoName || !pat) {
+      statusEl.innerHTML = '<div class="alert alert-error">Preencha todos os campos.</div>';
+      return;
+    }
+    saveRepoConfig({ owner, repo: repoName, pat });
+    showAlert('Configuração do repositório salva!', 'success');
+    statusEl.innerHTML = '<div class="alert alert-success">✅ Salvo com sucesso!</div>';
+  });
+
+  actions.append(testBtn, saveBtn);
+  form.append(ownerGroup, repoGroup, patGroup, actions, statusEl);
+
+  container.append(form);
   container.append(
     el('p', { style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--space-md)' } },
-      'Para alterar o repositório, execute o assistente de configuração novamente.'
+      'O PAT precisa ter permissão "Contents: Read and write" no repositório.'
     )
   );
 }
