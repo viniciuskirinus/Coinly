@@ -36,13 +36,13 @@
     "name": "CONTROLE_FINANCEIRO",
     "owner": "viniciuskirinus"
   },
-  "updatedAt": "2026-04-08T21:26:57.468Z",
+  "updatedAt": "2026-04-08T21:27:45.332Z",
   "budgets": {
     "vinicius": {
       "Transporte": 10
     }
   },
-  "encryptedSecrets": "i2saYeC6x14X2j2K0yqjTbipJJYkdVpMCKOVcqfTfv3rBVyllVdQdBg5BAvM3TZCzO94Pxr0GlLaJN9LL2ZUiygccCBejIIHNGkHTXcQJBdJ/hg45fwhJuAPE4qjf3WwKLmOJqU2EE1yH0yTximkgcNb/ee+CO3Xb2+BN86fjBVBAIL2/MRbIVCk4ExdxNHNk360QeKACsUaPyN6KSITnavcUG/LuwAe/1kqQouKsRANOuNz2QzLys0=",
+  "encryptedSecrets": "/6XIZXTP2CScI/CxHaOLWPcwTZU1VT/SViaBnMGm+oZsvlu4QJNxSRwYz3nYTtiK3354u4e7ySfW+FrM/TShXi60Pn40hUMD2OYSPKyvJTzV3z2i3DtSaJGW07x2XxZDu6eody3OmI4J+gF4QrAdmLNuDLaru23pNYpX+zZLXzOE2A3Xs9e1Qnh3mQt/eBWBEVCRa3uOm+0LnsmcEXDFj5retUyf9pSC6g2wK24HQ/guVN5EZ/f+cog=",
   "geminiModel": "gemini-3.1-flash-lite-preview",
   "pinHash": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"
 }
