@@ -351,9 +351,12 @@ async function finishWizard() {
     }
   };
 
-  try {
-    await dispatch('update-config', configPayload);
-  } catch { /* dispatch may fail offline — config still saved locally */ }
+  const dispatchWithTimeout = Promise.race([
+    dispatch('update-config', configPayload).catch(() => null),
+    new Promise(resolve => setTimeout(() => resolve(null), 5000))
+  ]);
+
+  dispatchWithTimeout.then(() => {}).catch(() => {});
 
   markWizardDone();
   document.getElementById('wizard-overlay')?.setAttribute('hidden', '');
