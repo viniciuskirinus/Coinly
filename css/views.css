@@ -63,7 +63,7 @@
 
 .dash-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-5); }
 .dash-chart-card h3 { margin: 0 0 var(--sp-4); }
-.dash-chart-wrapper { position: relative; max-height: 300px; display: flex; align-items: center; justify-content: center; }
+.dash-chart-wrapper { position: relative; height: 280px; }
 
 /* ── Savings ── */
 .savings-grid {

@@ -221,7 +221,7 @@ function renderDoughnutChart(transactions, categories) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       cutout: '60%',
       plugins: {
         legend: {
@@ -293,7 +293,7 @@ function renderBarChart(transactions, categories, config) {
     data: { labels, datasets },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,
