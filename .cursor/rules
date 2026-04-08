@@ -1,0 +1,334 @@
+<!-- gsd-project-start source:PROJECT.md -->
+## Project
+
+**FinanceiroVK — Flat-File Edition**
+
+Aplicação web de controle financeiro pessoal com arquitetura flat-file. Frontend estático (HTML/JS) hospedado no GitHub Pages, dados armazenados em arquivos JSON no repositório, e escrita de dados via GitHub Actions disparadas por Issues criadas pelo frontend via API do GitHub. Integração com Gemini AI para OCR de comprovantes.
+
+**Core Value:** O usuário consegue registrar e visualizar suas transações financeiras de forma rápida e confiável, com dados versionados e sob seu controle total no GitHub.
+
+### Constraints
+
+- **Hosting:** GitHub Pages (site estático, sem server-side rendering)
+- **Dados:** Flat-file JSON no repo (sem banco de dados externo)
+- **Escrita:** Via GitHub Actions apenas (sem endpoint HTTP próprio)
+- **Custo:** Zero — todos os serviços usados são gratuitos (GitHub Pages, Actions, API Gemini free tier)
+- **Latência de escrita:** Salvamentos não são instantâneos — dependem do ciclo Issue → Action → commit (segundos a minutos)
+- **Segurança:** Sem autenticação; repo pode ser privado com GitHub Pages habilitado
+- **IA:** Gemini API com key gerenciada via GitHub Secrets, injetada no build
+<!-- gsd-project-end -->
+
+<!-- gsd-stack-start source:codebase/STACK.md -->
+## Technology Stack
+
+## Languages
+- JavaScript (ES6+) — All server-side logic (`.gs` files) and client-side UI (inline `<script>` in `.html` files)
+- HTML5 — UI templates for Web App and Sidebars (`WebApp.html`, `Sidebar.html`, `ComprovanteSidebar.html`, `Relatorio.html`, `ConfiguracoesUI.html`)
+- CSS3 — Inline styles with CSS Custom Properties (all `.html` files use `:root` variables for theming)
+## Runtime
+- Google Apps Script V8 runtime (configured in `appsscript.json` → `"runtimeVersion": "V8"`)
+- Timezone: `America/Sao_Paulo`
+- Exception logging: Stackdriver
+- Server-side: Google Apps Script engine (`.gs` files)
+- Client-side: Browser sandbox within Google Apps Script `HtmlService` iframe
+- None — Google Apps Script has no package manager. All dependencies are either built-in GAS services or loaded via CDN in HTML files.
+## Frameworks
+- Google Apps Script (GAS) — Server-side framework. Provides `SpreadsheetApp`, `UrlFetchApp`, `HtmlService`, `Utilities`, `Logger`
+- No framework — Vanilla HTML/CSS/JS with `google.script.run` bridge for server calls
+- Chart.js 4.4.7 — Loaded via CDN in `WebApp.html` line 154: `https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js`
+- Used for doughnut, bar, and comparison charts on the Dashboard tab
+- Not detected — No test framework or test files present
+- No build tooling — Files are directly deployed to Google Apps Script editor or via `clasp`
+- No transpilation, bundling, or minification pipeline
+## Key Dependencies
+- Google Sheets API (via `SpreadsheetApp`) — Primary data store for all financial data. Used in every `.gs` file
+- Google Gemini API (v1beta, model `gemini-2.5-flash`) — AI features: receipt analysis, category suggestion, monthly insights. Client in `Gemini.gs`
+- Chart.js 4.4.7 (CDN) — Interactive dashboard charts in `WebApp.html`
+- `SpreadsheetApp` — CRUD on spreadsheet tabs (Transações, Config, Orçamento, Poupança, etc.)
+- `UrlFetchApp` — HTTP calls to Gemini API (`Gemini.gs` line 292)
+- `HtmlService` — Serves HTML UI as sidebar or standalone Web App (`Code.gs` lines 39-43, 80-104)
+- `Utilities` — Date formatting with timezone (`Utils.gs`, `Transacoes.gs`)
+- `Logger` — Server-side logging for debugging (`Utils.gs` line 34, `Gemini.gs` line 314)
+- `google.script.run` — Client-to-server bridge used in all `.html` files to call GAS functions
+- `FileReader` API — Image/PDF upload in `ComprovanteSidebar.html` and `WebApp.html`
+- Base64 encoding — Image data sent to Gemini via `inline_data` in `Gemini.gs` line 72
+## Configuration
+- All configuration stored in the `⚙️ Config` spreadsheet tab as key-value pairs (column A = key, column B = value)
+- `.env` file: Not applicable — GAS doesn't use environment files
+- Configuration keys defined in `Setup.gs` lines 47-80, read via `Configuracoes.gs`
+- `gemini_api_key` — Google Gemini API key (stored in spreadsheet Config tab)
+- `usar_ia` — Boolean toggle for AI features
+- `nome_pessoa1` / `nome_pessoa2` — Person names
+- `salario_pessoa1` / `salario_pessoa2` — Monthly salary reference
+- `moeda` — Currency symbol (default: `R$`)
+- `dia_fechamento_fatura` / `dia_pagamento_fatura` — Credit card billing cycle (per-person overrides available)
+- `meta_economia_pessoa1` / `meta_economia_pessoa2` — Monthly savings goal
+- `meta_poupanca_pessoa1` / `meta_poupanca_pessoa2` — Savings account goal
+- `metodos_pagamento` — Pipe-separated custom payment methods
+- `mostrar_centavos` — Display cents toggle
+- `https://www.googleapis.com/auth/spreadsheets` — Full spreadsheet access
+- `https://www.googleapis.com/auth/script.container.ui` — Sidebar and menu UI
+- `https://www.googleapis.com/auth/script.external_request` — External HTTP requests (Gemini API)
+- `executeAs`: `USER_DEPLOYING` — Runs under the deployer's identity
+- `access`: `ANYONE` — Public access to the Web App
+## Design System / Theming
+- `--p: #1a237e` — Primary (Indigo 900)
+- `--s: #3949ab` — Secondary (Indigo 600)
+- `--ok: #2e7d32` — Success/Revenue (Green 800)
+- `--err: #c62828` — Error/Expense (Red 800)
+- `--warn: #e65100` — Warning (Orange 900)
+- `--bg: #f0f2ff` — Background
+- `--card: #fff` — Card surface
+- `--txt: #37474f` — Text (Blue Grey 800)
+- `--border: #c5cae9` — Border (Indigo 100)
+- Font: `'Google Sans', Arial, sans-serif` — Used in all HTML files
+## Platform Requirements
+- Google account with access to Google Sheets
+- Google Apps Script editor (built into Google Sheets via Extensions → Apps Script)
+- Optional: `clasp` CLI for local development (not configured in this project)
+- Gemini API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) for AI features
+- Google Apps Script Web App deployment
+- Host: Google infrastructure (no external hosting required)
+- Google Sheets as the database (spreadsheet must remain accessible)
+- Internet access for Gemini API calls
+## File Inventory
+- `Code.gs` (155 lines) — Entry point, constants, Web App `doGet()`, menu, navigation
+- `Setup.gs` (294 lines) — Spreadsheet structure initialization (all tabs)
+- `Configuracoes.gs` (246 lines) — Config CRUD, categories, payment methods, initial data
+- `Transacoes.gs` (843 lines) — Transaction CRUD, budget, reports, savings (largest server file)
+- `Gemini.gs` (327 lines) — Gemini AI integration (receipt, insights, categorization)
+- `Dashboard.gs` (309 lines) — Dashboard tab rendering, profile views, joint analysis
+- `Utils.gs` (36 lines) — Shared utility functions
+- `WebApp.html` (2119 lines) — Full standalone Web App (7 tabs, Chart.js integration)
+- `Sidebar.html` (~287 lines) — Legacy sidebar for new transaction
+- `ComprovanteSidebar.html` (~310 lines) — Legacy sidebar for receipt analysis
+- `Relatorio.html` (~306 lines) — Legacy sidebar for monthly report
+- `ConfiguracoesUI.html` (~220 lines) — Legacy sidebar for settings
+- `appsscript.json` (15 lines) — GAS manifest with OAuth scopes and Web App config
+- `README.md` (231 lines) — Project documentation
+<!-- gsd-stack-end -->
+
+<!-- gsd-conventions-start source:CONVENTIONS.md -->
+## Conventions
+
+## Language & Runtime
+## Naming Patterns
+- PascalCase for file names: `Code.gs`, `Transacoes.gs`, `Dashboard.gs`, `Configuracoes.gs`, `Setup.gs`, `Gemini.gs`, `Utils.gs`
+- Each file corresponds to a domain module (transactions, dashboard, config, AI, setup, utilities)
+- File header: JSDoc block comment with `/** ... */` describing the file's purpose
+- PascalCase: `WebApp.html`, `Sidebar.html`, `ComprovanteSidebar.html`, `ConfiguracoesUI.html`, `Relatorio.html`
+- Single-file architecture: `<style>`, `<html>`, `<script>` all in one file — no external dependencies except Chart.js CDN
+- camelCase for all functions: `salvarTransacao()`, `gerarProximoId()`, `obterResumoMensal()`
+- Prefixed underscore for private/internal helpers: `_normDescDup()`, `_descSimilarDup()`, `_repararArrayTruncado()`, `_configDefaults()`
+- Portuguese naming throughout — verbs in infinitive form: `listar`, `salvar`, `obter`, `atualizar`, `criar`, `excluir`, `gerar`, `compilar`
+- CRUD verbs: `salvar*` (create/update), `editar*` (update), `excluir*` (delete), `listar*` / `get*` (read), `obter*` (fetch/compute)
+- Getter shortcuts use `get` prefix: `getConfig()`, `getTodasConfigs()`, `getPessoa1Nome()`, `getCategoriasList()`
+- Short abbreviated names in WebApp: `al()` (alert), `fmt()` (format currency), `cAnalisar()` (comprovante analyze), `ppSalvar()` (poupança save)
+- Section prefixes: `c*` for comprovante, `r*` for relatório, `pp*` for poupança, `cfg*` for configurações, `cf*` for fatura
+- Sidebars use clearer names: `salvar()`, `selPessoa()`, `selTipo()`, `carregarCats()`
+- camelCase: `totalReceitas`, `pessoaNome`, `dataTransacao`, `valorAbs`
+- Short aliases for spreadsheet objects: `ss` (spreadsheet), `sh` (sheet), `sh0` (sheet reference in batch ops)
+- Single-letter loop vars: `l` (line counter in Dashboard), `i`, `j`, `r` (row), `c` (column)
+- Config keys use snake_case strings: `'nome_pessoa1'`, `'salario_pessoa2'`, `'dia_fechamento_fatura'`
+- UPPER_SNAKE_CASE: `SHEETS_NAMES`, `COL`, `MES_NOMES`, `GEMINI_URL`, `METODOS_PADRAO`
+- Declared with `const` at file top level in `Code.gs`
+- No TypeScript — plain JS objects used as enum-like constants (`SHEETS_NAMES`, `COL`)
+## Code Style
+- No automated formatter (Prettier, ESLint) configured
+- 2-space indentation in `.gs` files
+- Minified/compressed CSS in HTML files (single-line declarations)
+- Semicolons used consistently in `.gs` files
+- Template literals used in `const`/`let` blocks, string concatenation with `+` in `var` blocks
+- `const` and `let` preferred in newer/main logic (`Code.gs`, `Dashboard.gs`, main functions in `Transacoes.gs`)
+- `var` used in batch operations and compatibility-critical code (`salvarMultiplasTransacoes`, `Configuracoes.gs` internal functions, `_repararArrayTruncado`)
+- Mixed `const`/`var` within some files — `var` appears in functions that iterate or need hoisting
+- No enforced limit — some lines exceed 200+ characters, especially prompt strings in `Gemini.gs` and inline CSS
+- No `.eslintrc`, `.prettierrc`, or any linting config present
+- No `package.json` — this is a pure GAS project with no npm/node tooling
+## Import Organization
+- Constants declared in `Code.gs` (`SHEETS_NAMES`, `COL`, `MES_NOMES`) are accessible everywhere
+- Functions from any `.gs` file can call functions from any other `.gs` file
+- Order of file loading is non-deterministic — avoid redeclaring `const`/`let` across files
+- `var METODOS_PADRAO` in `Configuracoes.gs` uses `var` specifically to avoid redeclaration errors
+- No module imports — all JS is inline `<script>` blocks
+- Chart.js loaded via CDN: `https://cdn.jsdelivr.net/npm/chart.js@4.4.7`
+- Communication with backend via `google.script.run` API
+## Error Handling
+- `sucesso: boolean` — always present in result objects
+- `mensagem: string` — human-readable message with emoji prefix (`✅`, `❌`, `⚠️`)
+- `codigo: string` — optional error code for programmatic handling (e.g., `'DUPLICATA'`)
+- Additional data fields vary by function: `id`, `dados`, `itens`, `existentes`, `duplicatas`
+- Dashboard update failures are swallowed: `try { atualizarDashboard(); } catch (e) { /* silencioso */ }`
+- Salary config updates swallowed: `try { setConfig(...); } catch (e2) { /* silencioso */ }`
+- Empty `catch (_) {}` blocks in batch operations (`salvarMultiplasTransacoes`)
+- `Logger.log()` with context tag: `Logger.log('[functionName] ' + e.message)`
+- `logErro(contexto, e)` utility in `Utils.gs` for structured error logging with stack trace
+- Pattern: `[ERRO] context: message\nstack`
+- `google.script.run.withFailureHandler(fn)` catches server errors
+- Alert helper `al(prefix, message, type)` displays colored alerts (`'s'` success, `'e'` error, `'w'` warning, `'i'` info)
+- Auto-dismiss alerts after 6 seconds (except `'i'` type)
+## Return Value Patterns
+- `listarTransacoes(filtros)` → `Array<Object>` or `[]`
+- `getTodasConfigs()` → config object (never null — falls back to `_configDefaults()`)
+- `getConfig(chave)` → value or `null`
+- `salvarTransacao(dados)` → `{ sucesso, mensagem, id? }`
+- `editarTransacao(dados)` → `{ sucesso, mensagem }`
+- `excluirTransacao(id)` → `{ sucesso, mensagem }`
+- `analisarComprovante(...)` → `{ sucesso, dados?, itens?, multiplo?, mensagem }`
+- `chamarGeminiAPI(...)` → `{ sucesso, texto?, truncado?, mensagem }`
+## Spreadsheet Access Patterns
+## CSS / Frontend Conventions
+- `.alert` with modifiers `.s` (success), `.e` (error), `.w` (warning)
+- `.btn`, `.btn-p` (primary), `.btn-sec` (secondary), `.btn-ia` (AI purple), `.btn-save`
+- `.card` with modifiers `.g` (green), `.r` (red), `.b` (blue), `.o` (orange)
+- `.fg` (form group), `.row` (flex row), `.panel`, `.sec` (section)
+- `.spin` (CSS-only loading spinner animation)
+## Comments
+- File-level JSDoc header describing file purpose: `/** Transacoes.gs — CRUD de transações financeiras */`
+- Section separators using ASCII art: `// ══════════════════════`, `// ── Section Title ──`
+- Inline comments for non-obvious business logic (credit card billing cycle, salary deduplication)
+- JSDoc `@param` used sparingly: only on `verificarDuplicataTransacao` for the cache parameter
+## Function Design
+- Single object parameter for complex inputs: `salvarTransacao(dados)`, `editarTransacao(dados)`, `listarTransacoes(filtros)`
+- Positional params for simple lookups: `getConfig(chave)`, `atualizarPerfil(numero)`, `excluirTransacao(id)`
+- Optional params with defaults: `filtros = filtros || {}`, `dados = dados || {}`
+- Internal cache parameters prefixed with `__`: `dados.__linhasDupCache`, `dados.__idPreAlocado`
+- Always return something — never `void` for functions called from frontend
+- Fallback returns on error: `return []`, `return null`, `return { sucesso: false, ... }`
+## Module Design
+- `Code.gs` — globals, entry points (`doGet`, `onOpen`), UI navigation
+- `Setup.gs` — one-time initialization, sheet creation
+- `Configuracoes.gs` — configuration CRUD, category/payment method management, initial data loading
+- `Transacoes.gs` — transaction CRUD, budget, savings (poupança), monthly reports
+- `Dashboard.gs` — spreadsheet dashboard rendering
+- `Gemini.gs` — all AI integration (receipt analysis, insights, category suggestion, API calls)
+- `Utils.gs` — shared utilities (formatting, date, logging)
+- `WebApp.html` — main standalone app (2119 lines, 7 tabs, full SPA)
+- `Sidebar.html`, `ComprovanteSidebar.html`, `Relatorio.html`, `ConfiguracoesUI.html` — legacy sidebar versions
+<!-- gsd-conventions-end -->
+
+<!-- gsd-architecture-start source:ARCHITECTURE.md -->
+## Architecture
+
+## Pattern Overview
+- Flat-file server-side codebase (`.gs` files) running on Google Apps Script V8 runtime
+- Client-side HTML/CSS/JS served via `HtmlService` (sidebars + standalone Web App)
+- Communication between client and server exclusively via `google.script.run` async bridge
+- Google Sheets tabs used as relational-like data tables (no external database)
+- Dual access mode: embedded in Google Sheets (menu + sidebars) and standalone Web App (`doGet`)
+- External AI integration with Google Gemini API via `UrlFetchApp`
+## Layers
+- Purpose: Application bootstrap, menu creation, sidebar launchers, Web App endpoint
+- Location: `Code.gs`
+- Contains: `doGet()` (Web App entry), `onOpen()` (Sheets menu), sidebar opener functions, `inicializarPlanilha()`, global constants (`SHEETS_NAMES`, `COL`, `MES_NOMES`)
+- Depends on: All other `.gs` files (calls functions from each)
+- Used by: Google Apps Script runtime (triggers), HTML clients (via `google.script.run`)
+- Purpose: Read/write key-value configuration from the `⚙️ Config` sheet tab; provide initial data payload to HTML clients
+- Location: `Configuracoes.gs`
+- Contains: `getConfig()`, `setConfig()`, `getTodasConfigs()`, `salvarConfiguracoes()`, `getCategoriasList()`, `getDadosIniciais()`, `getMesesDisponiveis()`, `getMetodosPagamento()`, `salvarMetodosPagamento()`, `getOrcamentos()`, `salvarOrcamentos()`
+- Depends on: `Code.gs` (constants `SHEETS_NAMES`, `COL`)
+- Used by: Every other `.gs` file and all HTML clients
+- Purpose: Full CRUD for financial transactions, savings (poupança), budget comparison, monthly reports
+- Location: `Transacoes.gs`
+- Contains: `salvarTransacao()`, `salvarMultiplasTransacoes()`, `editarTransacao()`, `excluirTransacao()`, `excluirMultiplasTransacoes()`, `listarTransacoes()`, `compilarResumoTransacoes()`, `calcularRendaExibida()`, `obterResumoMensal()`, `getOrcamentoVsRealizado()`, `gerarPayloadRelatorioMensal()`, savings CRUD (`getPoupanca()`, `salvarPoupanca()`, `excluirPoupanca()`, `getSaldoPoupanca()`), salary reference management (`upsertSalarioDoMes()`, `obterSalarioReferenciaMensal()`), duplicate detection (`verificarDuplicataTransacao()`)
+- Depends on: `Configuracoes.gs` (`getConfig`, `getTodasConfigs`, `setConfig`), `Code.gs` (constants), `Dashboard.gs` (`atualizarDashboard`)
+- Used by: `Dashboard.gs`, `Gemini.gs`, all HTML clients
+- Purpose: Programmatically write formatted data directly into Google Sheets tabs (Dashboard, Profile, Joint Analysis)
+- Location: `Dashboard.gs`
+- Contains: `atualizarDashboard()`, `atualizarPerfil()`, `atualizarAnaliseConjunta()`, `escreverSecao()` helper
+- Depends on: `Transacoes.gs` (data retrieval), `Configuracoes.gs` (config), `Code.gs` (constants)
+- Used by: `Code.gs` (menu actions), `Transacoes.gs` (auto-refresh after save), `Setup.gs` (initial setup)
+- Purpose: Google Gemini AI integration for receipt/statement OCR, financial insights, and category suggestion
+- Location: `Gemini.gs`
+- Contains: `analisarComprovante()` (vision API for image analysis), `obterInsightsMensais()` (text generation for financial advice), `sugerirCategoria()` (auto-categorization), `testarConexaoGemini()`, `chamarGeminiAPI()` (HTTP client), `_repararArrayTruncado()` (JSON repair for truncated responses), `normalizarTiposExtratoGemini()` (post-processing heuristics)
+- Depends on: `Configuracoes.gs` (`getGeminiApiKey`, `getTodasConfigs`, `getCategoriasList`, `getMetodosPagamento`), `Transacoes.gs` (transaction data for insights)
+- Used by: HTML clients (via `google.script.run`)
+- Purpose: Create and configure all Google Sheets tabs with headers, formatting, conditional rules, and default data
+- Location: `Setup.gs`
+- Contains: `criarEstruturaPlanilha()` (orchestrator), `criarAbaConfig()`, `criarAbaCategorias()`, `criarAbaOrcamento()`, `criarAbaTransacoes()`, `criarAbaPerfil()`, `criarAbaConjunto()`, `criarAbaPoupanca()`, `criarAbaSalarioMes()`, `criarAbaDashboard()`, helpers `getOuCriarAba()`, `estilizarHeader()`
+- Depends on: `Configuracoes.gs` (`getConfig`), `Dashboard.gs` (`atualizarDashboard`), `Code.gs` (constants)
+- Used by: `Code.gs` (`inicializarPlanilha`), HTML clients (via `criarEstruturaPlanilha`)
+- Purpose: Shared formatting and helper functions
+- Location: `Utils.gs`
+- Contains: `formatarMoeda()`, `formatarData()`, `obterMesAnoAtual()`, `planilhaInicializada()`, `logErro()`
+- Depends on: `Configuracoes.gs` (`getConfig`), `Code.gs` (constants)
+- Used by: Available globally but primarily used server-side
+- Purpose: Full-featured SPA served as standalone web application via `doGet()`
+- Location: `WebApp.html`
+- Contains: Complete UI with 7 tabs (Dashboard, Transação, Extrato, Poupança, Comprovante, Relatório, Config), Chart.js integration, all client-side state management and rendering logic (~2119 lines)
+- Depends on: All server-side functions via `google.script.run` (calls `getDadosIniciais`, `obterDadosRelatorio`, `salvarTransacao`, `salvarMultiplasTransacoes`, `editarTransacao`, `excluirTransacao`, `excluirMultiplasTransacoes`, `listarTransacoes`, `analisarComprovante`, `sugerirCategoria`, `obterInsightsMensais`, `salvarConfiguracoes`, `salvarMetodosPagamento`, `testarConexaoGemini`, `criarEstruturaPlanilha`, `getSaldoPoupanca`, `getPoupanca`, `salvarPoupanca`, `excluirPoupanca`, `getOrcamentos`, `salvarOrcamentos`, `getMesesDisponiveis`)
+- Used by: End users accessing the deployed Web App URL
+- Purpose: Lightweight UIs embedded as sidebars within Google Sheets
+- Location: `Sidebar.html`, `ComprovanteSidebar.html`, `ConfiguracoesUI.html`, `Relatorio.html`
+- Contains: Focused single-purpose forms matching a subset of WebApp.html functionality
+- Depends on: Server-side functions via `google.script.run`
+- Used by: Google Sheets menu actions (opened via `SpreadsheetApp.getUi().showSidebar()`)
+## Data Flow
+- Server-side: Stateless — every function call reads fresh data from Google Sheets
+- Client-side (`WebApp.html`): Module-level variables (`_d`, `_tPessoa`, `_tTipo`, `_dashRel`, `_rDados`, `_exList`, etc.) hold cached state per session
+- No state persistence between page loads on the client
+## Key Abstractions
+- Purpose: Each Google Sheets tab acts as a database table with fixed column schema
+- Examples: `💳 Transações` (13 columns, ID-indexed), `⚙️ Config` (key-value pairs in 2 columns), `📁 Categorias` (lookup table), `📋 Orçamento` (per-person budget limits), `💰 Poupança` (savings ledger), `💵 Salário mês` (per-person monthly salary reference)
+- Pattern: Row 1 = headers (frozen), data starts at row 2, column indices defined in `COL` constant (`Code.gs`)
+- Purpose: Central configuration accessible by all modules
+- Examples: `Configuracoes.gs → getConfig('gemini_api_key')`, `getTodasConfigs()` (reads entire sheet once, returns typed object)
+- Pattern: Column A = key slug (e.g., `nome_pessoa1`, `salario_pessoa2`), Column B = value. `getTodasConfigs()` caches all keys in one read to avoid N+1 sheet reads.
+- Purpose: Consistent API contract between server and client
+- Pattern: All mutation functions return `{sucesso: boolean, mensagem: string, ...extras}`. Transaction saves may return `{codigo: 'DUPLICATA', existentes: [...]}` for duplicate handling.
+- Purpose: Map various person identifiers (number, name, "Pessoa 1"/"Pessoa 2") to canonical person name
+- Examples: `Transacoes.gs → resolverPessoaParaPlanilha()`, `numeroPessoaDeNome()`, `pessoaTransacaoCorrespondeFiltro()`
+- Pattern: Accepts `pessoaNum` (1 or 2), raw person name, or legacy "Pessoa 1"/"Pessoa 2" strings; normalizes against `⚙️ Config` names
+- Purpose: Adjust transaction dates based on credit card statement closing date
+- Examples: `Transacoes.gs → aplicarCompetenciaCartaoCredito()`, `obterDiaFechamentoCartao()`
+- Pattern: If transaction date > closing day and payment method is "Cartão de Crédito", competence shifts to 1st of next month. Per-person closing dates supported.
+## Entry Points
+- Location: `Code.gs` line 38
+- Triggers: HTTP GET request to the deployed Web App URL
+- Responsibilities: Serves `WebApp.html` as standalone full-page application with viewport meta tag and permissive XFrameOptions
+- Location: `Code.gs` line 57
+- Triggers: Google Sheets document open event (simple trigger)
+- Responsibilities: Creates "💰 FinanceiroVK" custom menu with items for transaction entry, receipt analysis, dashboard refresh, report, profile navigation, settings, and initialization
+- Location: `Code.gs` lines 79–105
+- Triggers: Menu item clicks
+- Responsibilities: `abrirSidebarTransacao()` → `Sidebar.html`, `abrirSidebarComprovante()` → `ComprovanteSidebar.html`, `abrirRelatorio()` → `Relatorio.html`, `abrirConfiguracoes()` → `ConfiguracoesUI.html`
+- Location: `Code.gs` line 137, `Setup.gs` line 5
+- Triggers: User clicks "Inicializar Planilha" in menu or Config section
+- Responsibilities: Creates/reconfigures all 10 sheet tabs with headers, formatting, conditional rules, default categories, and budget template
+## Error Handling
+- All server-side public functions wrap logic in try-catch, returning `{sucesso: false, mensagem: e.message}` on failure
+- Non-critical operations (dashboard refresh after save, salary config update) are wrapped in nested try-catch with silent catch to prevent cascading failures
+- `Logger.log()` used for server-side error logging (visible in Apps Script execution logs)
+- Client-side uses `withFailureHandler()` on every `google.script.run` call to display error alerts
+- Gemini API responses include JSON repair logic (`_repararArrayTruncado`) and multiple parse attempts with trailing comma cleanup
+- `getTodasConfigs()` falls back to `_configDefaults()` if Config sheet is missing or unreadable
+## Cross-Cutting Concerns
+<!-- gsd-architecture-end -->
+
+<!-- gsd-skills-start source:skills/ -->
+## Project Skills
+
+No project skills found. Add skills to any of: `.cursor/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
+<!-- gsd-skills-end -->
+
+<!-- gsd-workflow-start source:GSD defaults -->
+## GSD Workflow Enforcement
+
+Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
+
+Use these entry points:
+- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
+- `/gsd-debug` for investigation and bug fixing
+- `/gsd-execute-phase` for planned phase work
+
+Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
+<!-- gsd-workflow-end -->
+
+
+
+<!-- gsd-profile-start -->
+## Developer Profile
+
+> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
+> This section is managed by `generate-claude-profile` -- do not edit manually.
+<!-- gsd-profile-end -->

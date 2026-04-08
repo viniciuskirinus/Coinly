@@ -32,10 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Foundation: estrutura do repo, seed data JSON e design system CSS
-- [ ] 01-02-PLAN.md — App Shell: HTML, navegação SPA, módulos core JS e views placeholder
-- [ ] 01-03-PLAN.md — Write Path: GitHub API client, workflows de escrita e deploy
-- [ ] 01-04-PLAN.md — Wizard: primeiro acesso com config de pessoa, PAT e categorias
+- [x] 01-01-PLAN.md — Foundation: estrutura do repo, seed data JSON e design system CSS
+- [x] 01-02-PLAN.md — App Shell: HTML, navegação SPA, módulos core JS e views placeholder
+- [x] 01-03-PLAN.md — Write Path: GitHub API client, workflows de escrita e deploy
+- [x] 01-04-PLAN.md — Wizard: primeiro acesso com config de pessoa, PAT e categorias
 **UI hint**: yes
 
 ### Phase 2: Configurações & Transações
