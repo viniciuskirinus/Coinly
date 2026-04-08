@@ -6,7 +6,6 @@ import { initSettings } from './views/settings.js';
 import { initSavings } from './views/savings.js';
 import { initSalaryHistory } from './views/salary-history.js';
 import { checkFirstRun, startWizard } from './views/wizard.js';
-import { isRepoConfigured } from './modules/github-api.js';
 import { getRepoConfig, saveRepoConfig } from './modules/storage.js';
 import { getConfig } from './modules/data-service.js';
 import { saveGeminiModel, saveGeminiKey, getGeminiKey } from './modules/gemini.js';
@@ -123,9 +122,16 @@ async function restoreConfigFromGit() {
 async function checkAuth() {
   if (isAuthenticated()) return true;
 
-  let cfg;
-  try { cfg = await getConfig(); } catch { return true; }
-  const pinHash = cfg?.pinHash;
+  let pinHash = null;
+
+  try {
+    const resp = await fetch('./data/config.json', { cache: 'no-store' });
+    if (resp.ok) {
+      const fresh = await resp.json();
+      pinHash = fresh?.pinHash;
+    }
+  } catch { /* offline or not available */ }
+
   if (!pinHash) return true;
 
   return new Promise((resolve) => {
@@ -161,8 +167,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     await restoreConfigFromGit();
     await checkAuth();
     navigate('dashboard');
-    if (!isRepoConfigured()) {
-      showAlert('PAT nao configurado. Va em Config > Repositorio e cole seu Personal Access Token.', 'warning');
-    }
   }
 });
