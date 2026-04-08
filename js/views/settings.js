@@ -730,7 +730,7 @@ function buildRepoContent(container) {
     }
   });
 
-  saveBtn.addEventListener('click', () => {
+  saveBtn.addEventListener('click', async () => {
     const owner = document.getElementById('set-repo-owner').value.trim();
     const repoName = document.getElementById('set-repo-name').value.trim();
     const pat = document.getElementById('set-repo-pat').value.trim();
@@ -739,19 +739,39 @@ function buildRepoContent(container) {
       return;
     }
     saveRepoConfig({ owner, repo: repoName, pat });
-    showAlert('Configuração do repositório salva!', 'success');
-    statusEl.innerHTML = '<div class="alert alert-success">✅ Salvo com sucesso!</div>';
+
+    const repoGitData = { owner, name: repoName, configured: true };
+    const updatedConfig = { ...state.config, repo: repoGitData };
+    putCacheEntry('config', updatedConfig);
+    state.config = updatedConfig;
+
+    showAlert('Configuração salva no navegador! Sincronizando com GitHub...', 'success');
+    statusEl.innerHTML = '<div class="alert alert-success">✅ Salvo localmente!</div>';
+
+    try {
+      const result = await dispatch('update-config', { ...updatedConfig, _schema_version: updatedConfig._schema_version || 1 });
+      if (result.success) {
+        statusEl.innerHTML = '<div class="alert alert-success">✅ Salvo no navegador e no GitHub!</div>';
+      } else {
+        statusEl.innerHTML = `<div class="alert alert-warning">⚠️ Salvo localmente, mas erro ao sincronizar: ${result.error}</div>`;
+      }
+    } catch {
+      statusEl.innerHTML = '<div class="alert alert-warning">⚠️ Salvo localmente. Sincronização pendente.</div>';
+    }
   });
 
   actions.append(testBtn, saveBtn);
   form.append(ownerGroup, repoGroup, patGroup, actions, statusEl);
 
   container.append(form);
-  container.append(
-    el('p', { style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--space-md)' } },
-      'O PAT precisa ter permissão "Contents: Read and write" no repositório.'
-    )
+
+  const helpText = el('div', { style: { color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--space-md)', lineHeight: '1.6' } });
+  helpText.append(
+    el('p', {}, '🔒 O PAT é armazenado apenas no navegador (localStorage) por segurança.'),
+    el('p', {}, '📦 Owner e nome do repositório são salvos também no config.json do GitHub, então sobrevivem à limpeza de dados do navegador.'),
+    el('p', {}, '⚠️ Após limpar dados do navegador, você só precisa re-inserir o PAT.')
   );
+  container.append(helpText);
 }
 
 // ─── Gemini AI Section ───
@@ -815,12 +835,18 @@ function buildGeminiContent(container) {
 
   const saveBtn = el('button', {
     className: 'btn btn-primary',
-    onClick: () => {
+    onClick: async () => {
       const inp = document.getElementById('gemini-key-input');
       const val = inp?.value.trim();
       const selModel = document.getElementById('gemini-model-select')?.value;
       saveGeminiKey(val);
-      if (selModel) saveGeminiModel(selModel);
+      if (selModel) {
+        saveGeminiModel(selModel);
+        const updatedConfig = { ...state.config, geminiModel: selModel };
+        putCacheEntry('config', updatedConfig);
+        state.config = updatedConfig;
+        dispatch('update-config', { ...updatedConfig, _schema_version: updatedConfig._schema_version || 1 }).catch(() => {});
+      }
       showAlert(val ? 'Chave e modelo salvos!' : 'Chave removida.', 'success');
       render();
     }

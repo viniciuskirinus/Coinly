@@ -5,6 +5,9 @@ import { initReceipt } from './views/receipt.js';
 import { initSettings } from './views/settings.js';
 import { checkFirstRun, startWizard } from './views/wizard.js';
 import { isRepoConfigured } from './modules/github-api.js';
+import { getRepoConfig, saveRepoConfig } from './modules/storage.js';
+import { getConfig } from './modules/data-service.js';
+import { saveGeminiModel } from './modules/gemini.js';
 
 const VIEWS = {
   dashboard:   { init: initDashboard,   icon: '📊', label: 'Dashboard' },
@@ -46,6 +49,26 @@ export function showAlert(message, type = 'info') {
   }, 5000);
 }
 
+async function restoreConfigFromGit() {
+  const existing = getRepoConfig();
+  if (existing.owner && existing.repo) return;
+
+  try {
+    const config = await getConfig();
+    if (config?.repo?.owner && config?.repo?.name) {
+      saveRepoConfig({
+        owner: config.repo.owner,
+        repo: config.repo.name,
+        pat: existing.pat || ''
+      });
+      console.log('[app] repo config restaurado do config.json');
+    }
+    if (config?.geminiModel) {
+      saveGeminiModel(config.geminiModel);
+    }
+  } catch { /* config.json não disponível */ }
+}
+
 window.addEventListener('wizard-complete', () => {
   navigate('dashboard');
 });
@@ -62,9 +85,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (isFirstRun) {
     startWizard();
   } else {
+    await restoreConfigFromGit();
     navigate('dashboard');
     if (!isRepoConfigured()) {
-      showAlert('⚠️ Repositório GitHub não configurado. Vá em Config para conectar e poder salvar dados.', 'warning');
+      showAlert('⚠️ PAT não configurado. Vá em Config → Repositório e cole seu Personal Access Token.', 'warning');
     }
   }
 });
