@@ -1,5 +1,25 @@
 {
   "_schema_version": 1,
-  "goals": [],
-  "deposits": []
+  "goals": [
+    {
+      "color": "#4f46e5",
+      "createdAt": "2026-04-08T20:37:08.850Z",
+      "currentAmount": 0,
+      "deadline": "2026-04-17",
+      "id": 1,
+      "name": "teste",
+      "person": "vinicius",
+      "targetAmount": 1000
+    }
+  ],
+  "deposits": [
+    {
+      "amount": 1,
+      "date": "2026-04-08",
+      "goalId": 1,
+      "id": 1,
+      "note": ""
+    }
+  ],
+  "updatedAt": "2026-04-08T20:37:33.042Z"
 }
