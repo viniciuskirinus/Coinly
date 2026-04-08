@@ -10,6 +10,7 @@ let state = {
   paymentMethods: null,
   editingPersonId: null,
   editingCategory: null,
+  budgetPerson: null,
   openAccordions: new Set(['pessoas']),
   saving: false
 };
@@ -421,6 +422,138 @@ function buildCategoriesContent(container) {
   });
 }
 
+// ─── Budget Section ───
+
+function buildBudgetContent(container) {
+  const people = state.config?.people || [];
+  const categories = state.categories || { expense: [] };
+  const expenseCategories = categories.expense || [];
+  const budgets = state.config?.budgets || {};
+
+  if (!people.length) {
+    container.append(el('p', { style: { color: 'var(--color-text-secondary)', fontStyle: 'italic' } }, 'Adicione pessoas primeiro.'));
+    return;
+  }
+
+  if (!expenseCategories.length) {
+    container.append(el('p', { style: { color: 'var(--color-text-secondary)', fontStyle: 'italic' } }, 'Adicione categorias de despesa primeiro.'));
+    return;
+  }
+
+  if (people.length > 1) {
+    const selected = state.budgetPerson || people[0].name;
+
+    const selectorRow = el('div', { style: { marginBottom: 'var(--space-lg)' } });
+    selectorRow.append(el('label', { className: 'form-label' }, 'Pessoa'));
+
+    const select = el('select', {
+      className: 'form-select',
+      style: { width: '100%', marginTop: 'var(--space-xs)' },
+      onChange: (e) => { state.budgetPerson = e.target.value; render(); }
+    });
+
+    people.forEach(p => {
+      const opt = el('option', { value: p.name }, p.name.charAt(0).toUpperCase() + p.name.slice(1));
+      if (p.name === selected) opt.selected = true;
+      select.append(opt);
+    });
+
+    selectorRow.append(select);
+    container.append(selectorRow);
+  }
+
+  const personName = state.budgetPerson || people[0].name;
+  const personBudget = budgets[personName] || {};
+
+  const grid = el('div', { className: 'budget-settings-grid' });
+
+  expenseCategories.forEach((cat, i) => {
+    const row = el('div', { className: 'budget-settings-row' });
+    const catLabel = el('span', { className: 'budget-settings-category' },
+      el('span', {}, cat.icon || '📁'),
+      el('span', {}, cat.name)
+    );
+
+    const inputWrapper = el('div', { className: 'budget-settings-input' });
+    inputWrapper.append(
+      el('span', { className: 'currency-label' }, 'R$'),
+      el('input', {
+        className: 'form-input',
+        type: 'number',
+        min: '0',
+        step: '50',
+        value: String(personBudget[cat.name] || ''),
+        placeholder: '0',
+        id: `budget-${i}`,
+        'data-category': cat.name,
+        style: { flex: '1' }
+      })
+    );
+
+    row.append(catLabel, inputWrapper);
+    grid.append(row);
+  });
+
+  container.append(grid);
+
+  const actions = el('div', { style: { display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-lg)' } });
+  actions.append(
+    el('button', { className: 'btn btn-primary', onClick: () => saveBudgets(personName, expenseCategories) }, '💾 Salvar Orçamento'),
+    el('button', { className: 'btn btn-ghost', onClick: () => clearBudgets(personName) }, '🗑️ Limpar')
+  );
+  container.append(actions);
+}
+
+async function saveBudgets(personName, expenseCategories) {
+  const personBudget = {};
+
+  expenseCategories.forEach((cat, i) => {
+    const input = document.getElementById(`budget-${i}`);
+    const val = parseFloat(input?.value);
+    if (val > 0) personBudget[cat.name] = val;
+  });
+
+  const budgets = { ...(state.config?.budgets || {}) };
+  budgets[personName] = personBudget;
+
+  state.saving = true;
+  render();
+
+  const result = await dispatch('update-config', { ...state.config, budgets, _schema_version: state.config._schema_version });
+
+  state.saving = false;
+  if (result.success) {
+    state.config.budgets = budgets;
+    invalidateCache('config');
+    showAlert('Orçamento salvo com sucesso!', 'success');
+  } else {
+    showAlert(`Erro ao salvar orçamento: ${result.error}`, 'error');
+  }
+  render();
+}
+
+async function clearBudgets(personName) {
+  if (!confirm(`Limpar todos os orçamentos de "${personName}"?`)) return;
+
+  const budgets = { ...(state.config?.budgets || {}) };
+  delete budgets[personName];
+
+  state.saving = true;
+  render();
+
+  const result = await dispatch('update-config', { ...state.config, budgets, _schema_version: state.config._schema_version });
+
+  state.saving = false;
+  if (result.success) {
+    state.config.budgets = budgets;
+    invalidateCache('config');
+    showAlert('Orçamento limpo!', 'success');
+  } else {
+    showAlert(`Erro ao limpar orçamento: ${result.error}`, 'error');
+  }
+  render();
+}
+
 // ─── Payment Methods Section ───
 
 function buildPaymentContent(container) {
@@ -548,6 +681,7 @@ function render() {
 
   section.append(buildAccordion('pessoas', '👤 Pessoas', buildPeopleContent));
   section.append(buildAccordion('categorias', '🏷️ Categorias', buildCategoriesContent));
+  section.append(buildAccordion('orcamento', '📊 Orçamento', buildBudgetContent));
   section.append(buildAccordion('pagamento', '💳 Métodos de Pagamento', buildPaymentContent));
   section.append(buildAccordion('repo', '🔗 Repositório', buildRepoContent));
 }
@@ -585,6 +719,7 @@ export async function initSettings() {
   state.paymentMethods = paymentMethods || { _schema_version: 1, methods: [] };
   state.editingPersonId = null;
   state.editingCategory = null;
+  state.budgetPerson = null;
   state.saving = false;
 
   render();
