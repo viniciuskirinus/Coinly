@@ -29,7 +29,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Frontend lê dados JSON via fetch() nos arquivos servidos pelo Pages com formatação brasileira (R$, DD/MM/YYYY)
   4. Frontend envia dados via `repository_dispatch` e a Action processa, valida, atualiza o JSON correspondente e faz commit atômico
   5. Workflow usa `concurrency` group para serializar escritas e evitar race conditions
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Foundation: estrutura do repo, seed data JSON e design system CSS
+- [ ] 01-02-PLAN.md — App Shell: HTML, navegação SPA, módulos core JS e views placeholder
+- [ ] 01-03-PLAN.md — Write Path: GitHub API client, workflows de escrita e deploy
+- [ ] 01-04-PLAN.md — Wizard: primeiro acesso com config de pessoa, PAT e categorias
 **UI hint**: yes
 
 ### Phase 2: Configurações & Transações
@@ -76,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação & Pipeline de Dados | 0/TBD | Not started | - |
+| 1. Fundação & Pipeline de Dados | 0/4 | Planning complete | - |
 | 2. Configurações & Transações | 0/TBD | Not started | - |
 | 3. Dashboard & Orçamento | 0/TBD | Not started | - |
 | 4. Gemini AI | 0/TBD | Not started | - |
