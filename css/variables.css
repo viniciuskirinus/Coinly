@@ -1,0 +1,58 @@
+:root {
+  /* Paleta Indigo (D-14) */
+  --color-primary: #1a237e;
+  --color-secondary: #3949ab;
+  --color-primary-light: #534bae;
+  --color-primary-dark: #000051;
+
+  /* Semânticas */
+  --color-income: #2e7d32;
+  --color-expense: #c62828;
+  --color-warning: #e65100;
+  --color-info: #1565c0;
+
+  /* Superfícies */
+  --color-bg: #f5f7ff;
+  --color-card: #ffffff;
+  --color-text: #37474f;
+  --color-text-secondary: #78909c;
+  --color-border: #c5cae9;
+
+  /* Alert backgrounds */
+  --color-alert-success-bg: #e8f5e9;
+  --color-alert-error-bg: #ffebee;
+  --color-alert-info-bg: #e3f2fd;
+  --color-alert-warning-bg: #fff3e0;
+
+  /* Layout */
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  /* Tipografia (D-15) */
+  --font-family: 'Google Sans', Arial, sans-serif;
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+
+  /* Spacing scale 8-point */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+}

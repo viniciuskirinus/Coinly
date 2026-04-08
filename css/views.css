@@ -1,0 +1,90 @@
+/* Views — hidden by default, shown via JS */
+.view-section {
+  display: none;
+}
+
+.view-section[hidden] {
+  display: none !important;
+}
+
+/* Placeholder views (features not yet implemented) */
+.placeholder-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-2xl);
+  min-height: 300px;
+}
+
+.placeholder-view .placeholder-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+}
+
+.placeholder-view h2 {
+  margin-bottom: var(--space-sm);
+  color: var(--color-text);
+}
+
+.placeholder-view p {
+  color: var(--color-text-secondary);
+  max-width: 400px;
+}
+
+/* Wizard overlay */
+.wizard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.wizard-container {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-xl);
+}
+
+/* Wizard progress */
+.wizard-progress {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.wizard-step-indicator {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  transition: background var(--transition-normal);
+}
+
+.wizard-step-indicator.active {
+  background: var(--color-secondary);
+}
+
+.wizard-step-indicator.done {
+  background: var(--color-income);
+}
+
+/* Wizard content and actions */
+.wizard-content {
+  margin-bottom: var(--space-xl);
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
