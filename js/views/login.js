@@ -12,6 +12,7 @@ export function showLoginScreen(pinHash, encryptedSecrets, onSuccess) {
       <h1>FinanceiroVK</h1>
       <p>Digite seu PIN para acessar</p>
       <div class="form-group">
+        <label for="login-pin" class="form-label" style="text-align:center">PIN de acesso</label>
         <input type="password" id="login-pin" class="form-input" placeholder="PIN" maxlength="20"
           style="text-align:center;font-size:var(--text-xl);letter-spacing:0.3em;padding:var(--sp-3)">
       </div>
@@ -49,6 +50,8 @@ export function showLoginScreen(pinHash, encryptedSecrets, onSuccess) {
           if (secrets.geminiKey) {
             saveGeminiKey(secrets.geminiKey);
           }
+        } else {
+          console.warn('[login] Falha ao descriptografar segredos. PAT e chave Gemini podem não estar disponíveis.');
         }
       }
 

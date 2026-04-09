@@ -5,6 +5,7 @@ import { showAlert } from '../app.js';
 
 let state = { config: null, selectedPerson: null, transactions: {} };
 let chartInstance = null;
+let barChartInstance = null;
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -114,7 +115,9 @@ function renderSalaryVsExpensesChart(person) {
   const textColor = isDark ? '#8b92a8' : '#64748b';
   const gridColor = isDark ? '#232840' : '#e2e8f0';
 
-  new Chart(canvas, {
+  if (barChartInstance) { barChartInstance.destroy(); barChartInstance = null; }
+
+  barChartInstance = new Chart(canvas, {
     type: 'bar',
     data: {
       labels: months,

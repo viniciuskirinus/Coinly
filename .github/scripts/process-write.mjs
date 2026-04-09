@@ -160,7 +160,7 @@ function handleUpdateCategories(categories) {
     process.exit(1);
   }
 
-  const file = { ...categories, _schema_version: 1 };
+  const file = { ...categories, _schema_version: 1, updatedAt: new Date().toISOString() };
   writeJSONFile('data/categories.json', file);
   console.log('Categories updated');
 }
@@ -173,7 +173,8 @@ function handleUpdatePaymentMethods(methods) {
 
   const file = {
     _schema_version: 1,
-    methods: methods.methods || methods
+    methods: methods.methods || methods,
+    updatedAt: new Date().toISOString()
   };
   writeJSONFile('data/payment-methods.json', file);
   console.log('Payment methods updated');

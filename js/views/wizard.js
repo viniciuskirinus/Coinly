@@ -147,7 +147,7 @@ function renderPerson(content, actions) {
 }
 
 function savePerson() {
-  wizardData.person.name = document.getElementById('wz-name')?.value.trim() || '';
+  wizardData.person.name = (document.getElementById('wz-name')?.value.trim() || '').toLowerCase();
   wizardData.person.salary = parseFloat(document.getElementById('wz-salary')?.value) || 0;
   wizardData.person.monthlyGoal = parseFloat(document.getElementById('wz-goal')?.value) || 0;
   wizardData.person.creditCard.closingDay = parseInt(document.getElementById('wz-closing')?.value) || 5;
@@ -336,7 +336,7 @@ async function finishWizard() {
       monthlyGoal: parseFloat(wizardData.person.monthlyGoal) || 0,
       creditCard: {
         closingDay,
-        paymentDay: closingDay + 5
+        paymentDay: Math.min(closingDay + 5, 28)
       }
     }],
     settings: {

@@ -1,4 +1,4 @@
-import { getConfig, getCategories, getTransactions, getPaymentMethods, invalidateCache, putCacheEntry } from '../modules/data-service.js';
+import { getConfig, getCategories, getTransactions, getPaymentMethods, putCacheEntry } from '../modules/data-service.js';
 import { dispatch } from '../modules/github-api.js';
 import { formatCurrency, formatDate, getCurrentYearMonth } from '../modules/format.js';
 import { getState, setState, addPendingSync, resolvePendingSync } from '../modules/state.js';
@@ -56,9 +56,9 @@ function renderShell(section) {
     <div class="section-header">
       <h2>📋 Extrato</h2>
       <div style="display:flex;align-items:center;gap:var(--sp-2)">
-        <button class="btn btn-ghost" id="stmt-prev-month" title="Mês anterior">←</button>
+        <button class="btn btn-ghost" id="stmt-prev-month" title="Mês anterior" aria-label="Mês anterior">←</button>
         <span id="stmt-month-label" style="font-weight:700;min-width:100px;text-align:center"></span>
-        <button class="btn btn-ghost" id="stmt-next-month" title="Próximo mês">→</button>
+        <button class="btn btn-ghost" id="stmt-next-month" title="Próximo mês" aria-label="Próximo mês">→</button>
       </div>
     </div>
 
@@ -487,6 +487,7 @@ async function handleEdit(id, overlay, section, editType) {
     return;
   }
 
+  const original = viewState.allTransactions.find(t => t.id === id);
   const updated = {
     id,
     date: dateVal,
@@ -498,17 +499,19 @@ async function handleEdit(id, overlay, section, editType) {
     person,
     paymentMethod,
     notes,
-    createdAt: new Date().toISOString()
+    createdAt: original?.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   };
 
   const idx = viewState.allTransactions.findIndex(t => t.id === id);
   if (idx !== -1) viewState.allTransactions[idx] = updated;
 
   const cacheKey = `txn-${viewState.yearMonth}`;
+  const maxId = Math.max(0, ...viewState.allTransactions.map(t => (typeof t.id === 'number' && t.id > 0) ? t.id : 0));
   putCacheEntry(cacheKey, {
     _schema_version: 1,
     month: viewState.yearMonth,
-    lastId: 0,
+    lastId: maxId,
     transactions: [...viewState.allTransactions]
   });
 
@@ -559,10 +562,11 @@ async function executeDelete(ids, section) {
   viewState.selectedIds = new Set();
 
   const cacheKey = `txn-${viewState.yearMonth}`;
+  const maxIdDel = Math.max(0, ...viewState.allTransactions.map(t => (typeof t.id === 'number' && t.id > 0) ? t.id : 0));
   putCacheEntry(cacheKey, {
     _schema_version: 1,
     month: viewState.yearMonth,
-    lastId: 0,
+    lastId: maxIdDel,
     transactions: [...viewState.allTransactions]
   });
 

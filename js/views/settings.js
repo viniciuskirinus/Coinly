@@ -1,4 +1,4 @@
-import { getConfig, getCategories, getPaymentMethods, invalidateCache, putCacheEntry } from '../modules/data-service.js';
+import { getConfig, getCategories, getPaymentMethods, putCacheEntry } from '../modules/data-service.js';
 import { dispatch, testConnection } from '../modules/github-api.js';
 import { isWizardDone, getRepoConfig, saveRepoConfig } from '../modules/storage.js';
 import { formatCurrency } from '../modules/format.js';

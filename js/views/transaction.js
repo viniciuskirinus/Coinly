@@ -1,6 +1,6 @@
-import { getConfig, getCategories, getPaymentMethods, getTransactions, invalidateCache, putCacheEntry, findDuplicates } from '../modules/data-service.js';
+import { getConfig, getCategories, getPaymentMethods, getTransactions, putCacheEntry, findDuplicates } from '../modules/data-service.js';
 import { dispatch } from '../modules/github-api.js';
-import { formatCurrency, getCurrentYearMonth } from '../modules/format.js';
+import { formatCurrency } from '../modules/format.js';
 import { getState, setState, addPendingSync, resolvePendingSync } from '../modules/state.js';
 import { showAlert } from '../app.js';
 import { isGeminiConfigured, suggestCategory } from '../modules/gemini.js';
@@ -103,7 +103,7 @@ function render(section, config, categories, paymentMethods) {
           <textarea id="txn-notes" class="form-input" rows="2" placeholder="Opcional..."></textarea>
         </div>
 
-        <div id="txn-credit-info" style="display:none" class="alert alert-info" style="margin-bottom:var(--sp-4)">
+        <div id="txn-credit-info" class="alert alert-info" style="display:none;margin-bottom:var(--sp-4)">
           📅 Lançado na fatura do mês seguinte
         </div>
 
@@ -402,8 +402,17 @@ function resetForm(section) {
   const subcategoryGroup = section.querySelector('#txn-subcategory-group');
   if (subcategoryGroup) subcategoryGroup.style.display = 'none';
 
+  const personSelect = section.querySelector('#txn-person');
+  if (personSelect) personSelect.selectedIndex = 0;
+
+  const paymentSelect = section.querySelector('#txn-payment');
+  if (paymentSelect) paymentSelect.selectedIndex = 0;
+
   const creditInfo = section.querySelector('#txn-credit-info');
   if (creditInfo) creditInfo.style.display = 'none';
+
+  const aiHint = section.querySelector('#txn-ai-hint');
+  if (aiHint) aiHint.style.display = 'none';
 
   const toggleBtns = section.querySelectorAll('#txn-type-toggle .toggle-option');
   toggleBtns.forEach(b => b.classList.remove('active'));

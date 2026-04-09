@@ -372,7 +372,19 @@ async function saveReceiptTransaction(form, people) {
     return;
   }
 
-  const yearMonth = dateVal.slice(0, 7);
+  let yearMonth = dateVal.slice(0, 7);
+  if (paymentMethod === 'Cartão de Crédito') {
+    const config = state.config;
+    const personObj = config?.people?.find(p => p.name === person);
+    const closingDay = personObj?.creditCard?.closingDay;
+    if (closingDay) {
+      const day = new Date(dateVal + 'T12:00:00').getDate();
+      if (day > closingDay) {
+        const d = new Date(new Date(dateVal + 'T12:00:00').getFullYear(), new Date(dateVal + 'T12:00:00').getMonth() + 1, 1);
+        yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      }
+    }
+  }
   const tempId = -Date.now();
   const txnData = {
     id: tempId,

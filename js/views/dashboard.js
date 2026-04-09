@@ -2,7 +2,7 @@ import { getConfig, getTransactions, getCategories, invalidateCache } from '../m
 import { formatCurrency, getCurrentYearMonth, formatDate } from '../modules/format.js';
 
 const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
@@ -378,7 +378,7 @@ function renderRecentTransactions(transactions, categories) {
 }
 
 async function loadDashboard() {
-  invalidateCache();
+  invalidateCache(`txn-${currentYearMonth}`);
   const [config, categories, txnData] = await Promise.all([
     getConfig(),
     getCategories(),
