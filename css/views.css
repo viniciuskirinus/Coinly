@@ -1,5 +1,5 @@
 /* ── View Sections ── */
-.view-section { display: block; }
+.view-section { display: block; max-width: 100%; overflow-x: hidden; }
 .view-section[hidden] { display: none !important; }
 
 /* ── Wizard ── */
@@ -108,20 +108,20 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .filter-bar { flex-direction: column; gap: var(--sp-1); }
-  .filter-bar .form-select, .filter-bar .form-input { width: 100%; min-width: unset; }
+  .filter-bar { flex-direction: column; gap: var(--sp-1); width: 100%; }
+  .filter-bar .form-select, .filter-bar .form-input { width: 100%; min-width: 0 !important; }
   .data-table-wrapper { display: none; }
-  .txn-card-list { display: block; }
-  .section-header { flex-direction: column; align-items: flex-start; gap: var(--sp-1); }
+  .txn-card-list { display: block; max-width: 100%; }
+  .section-header { flex-direction: column; align-items: flex-start; gap: var(--sp-1); max-width: 100%; }
   .section-header h2 { font-size: 1rem; }
 
   /* Dashboard */
-  .dash-header { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+  .dash-header { flex-direction: column; align-items: flex-start; gap: var(--sp-2); max-width: 100%; }
   .dash-header h2 { font-size: 1.05rem; }
-  .dash-controls { width: 100%; justify-content: space-between; }
-  .dash-controls .form-select { font-size: 12px; padding: 4px 8px; min-width: 90px; }
+  .dash-controls { width: 100%; justify-content: space-between; overflow: hidden; }
+  .dash-controls .form-select { font-size: 12px; padding: 4px 8px; min-width: 0; max-width: 110px; }
   .dash-month-nav .btn { padding: 4px 8px; font-size: 13px; }
-  .dash-month-text { font-size: 13px; font-weight: 600; min-width: 100px; }
+  .dash-month-text { font-size: 13px; font-weight: 600; min-width: 90px; }
   .dash-summary-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
   .summary-card { padding: 10px 12px; }
   .summary-card__value { font-size: 15px; }

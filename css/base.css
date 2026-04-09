@@ -1,6 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { color-scheme: light; }
+html { color-scheme: light; overflow-x: hidden; }
 [data-theme="dark"] { color-scheme: dark; }
 
 body {
@@ -11,6 +11,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  width: 100%;
 }
 
 h1 { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.02em; }
@@ -164,6 +165,7 @@ a:hover { text-decoration: underline; }
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
+  html, body { width: 100% !important; overflow-x: hidden !important; }
   body { font-size: 13px; }
 
   .sidebar {
@@ -212,6 +214,9 @@ a:hover { text-decoration: underline; }
     margin-left: 0;
     margin-bottom: 56px;
     padding: var(--sp-3) var(--sp-3) var(--sp-6);
+    max-width: 100%;
+    overflow-x: hidden;
+    width: 100%;
   }
 
   h1 { font-size: 1.375rem; }

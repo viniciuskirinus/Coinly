@@ -468,24 +468,24 @@
 .budget-settings-input .currency-label { font-size: var(--text-xs); color: var(--text-tertiary); font-weight: 600; flex-shrink: 0; }
 
 @media (max-width: 768px) {
-  .card { padding: var(--sp-4); }
+  .card { padding: var(--sp-4); max-width: 100%; overflow-x: hidden; }
 
   .btn { padding: 6px 12px; font-size: 12px; }
   .btn-icon { min-width: 28px; min-height: 28px; font-size: 14px; }
 
-  .form-group { margin-bottom: var(--sp-3); }
-  .form-input, .form-select { padding: 6px 10px; font-size: 13px; }
+  .form-group { margin-bottom: var(--sp-3); max-width: 100%; }
+  .form-input, .form-select { padding: 6px 10px; font-size: 13px; max-width: 100%; }
   .form-label { font-size: 10px; }
 
-  .toggle-group { font-size: 12px; }
+  .toggle-group { font-size: 12px; max-width: 100%; }
   .toggle-option { padding: 6px 8px; font-size: 12px; }
 
-  .section-header { margin-bottom: var(--sp-4); }
+  .section-header { margin-bottom: var(--sp-4); max-width: 100%; }
 
-  .filter-bar { gap: var(--sp-1); margin-bottom: var(--sp-3); }
-  .filter-bar .form-select, .filter-bar .form-input { font-size: 12px; padding: 6px 8px; }
+  .filter-bar { gap: var(--sp-1); margin-bottom: var(--sp-3); max-width: 100%; }
+  .filter-bar .form-select, .filter-bar .form-input { font-size: 12px; padding: 6px 8px; min-width: 0 !important; }
 
-  .bulk-bar { padding: 6px 10px; font-size: 12px; gap: var(--sp-1); }
+  .bulk-bar { padding: 6px 10px; font-size: 12px; gap: var(--sp-1); max-width: 100%; }
 
   .budget-settings-row {
     flex-wrap: wrap;

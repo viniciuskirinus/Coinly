@@ -58,7 +58,7 @@ function buildLayout(section, people) {
           <span id="dash-month-label" class="dash-month-text"></span>
           <button class="btn btn-ghost" id="dash-next-month" aria-label="Proximo mes">&rsaquo;</button>
         </div>
-        <select class="form-select" id="dash-person-filter" style="min-width:120px">
+        <select class="form-select" id="dash-person-filter">
           <option value="all">Todos</option>
           ${people.map(p => `<option value="${p.name}">${p.name.charAt(0).toUpperCase() + p.name.slice(1)}</option>`).join('')}
         </select>

@@ -57,7 +57,7 @@ function renderShell(section) {
       <h2>📋 Extrato</h2>
       <div style="display:flex;align-items:center;gap:var(--sp-2)">
         <button class="btn btn-ghost" id="stmt-prev-month" title="Mês anterior" aria-label="Mês anterior">←</button>
-        <span id="stmt-month-label" style="font-weight:700;min-width:100px;text-align:center"></span>
+        <span id="stmt-month-label" class="dash-month-text"></span>
         <button class="btn btn-ghost" id="stmt-next-month" title="Próximo mês" aria-label="Próximo mês">→</button>
       </div>
     </div>
