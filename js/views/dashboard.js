@@ -90,6 +90,17 @@ function buildLayout(section, people) {
   `;
 }
 
+function getSalaryForMonth(person, yearMonth) {
+  const history = person?.salaryHistory || [];
+  const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date));
+  let salary = person?.salary || 0;
+  for (const entry of sorted) {
+    if (entry.date <= yearMonth) salary = entry.amount;
+    else break;
+  }
+  return salary;
+}
+
 function renderSummary(transactions, config) {
   const container = document.getElementById('dash-summary');
   const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -100,11 +111,11 @@ function renderSummary(transactions, config) {
   let salary, monthlyGoal;
 
   if (currentPerson === 'all') {
-    salary = people.reduce((s, p) => s + (p.salary || 0), 0);
+    salary = people.reduce((s, p) => s + getSalaryForMonth(p, currentYearMonth), 0);
     monthlyGoal = people.reduce((s, p) => s + (p.monthlyGoal || 0), 0);
   } else {
     const person = people.find(p => p.name === currentPerson);
-    salary = person?.salary || 0;
+    salary = getSalaryForMonth(person, currentYearMonth);
     monthlyGoal = person?.monthlyGoal || 0;
   }
 
@@ -379,25 +390,32 @@ function renderRecentTransactions(transactions, categories) {
 
 async function loadDashboard() {
   invalidateCache(`txn-${currentYearMonth}`);
-  const [config, categories, txnData] = await Promise.all([
-    getConfig(),
-    getCategories(),
-    getTransactions(currentYearMonth)
-  ]);
+  invalidateCache('config');
 
-  let transactions = txnData?.transactions || [];
-  if (currentPerson !== 'all') {
-    transactions = transactions.filter(t => t.person === currentPerson);
+  const label = document.getElementById('dash-month-label');
+  if (label) label.textContent = monthLabel(currentYearMonth);
+
+  try {
+    const [config, categories, txnData] = await Promise.all([
+      getConfig(),
+      getCategories(),
+      getTransactions(currentYearMonth)
+    ]);
+
+    let transactions = txnData?.transactions || [];
+    if (currentPerson !== 'all') {
+      transactions = transactions.filter(t => t.person === currentPerson);
+    }
+
+    destroyCharts();
+    renderSummary(transactions, config);
+    renderBudgetProgress(transactions, categories, config);
+    renderDoughnutChart(transactions, categories);
+    renderBarChart(transactions, categories, config);
+    renderRecentTransactions(transactions, categories);
+  } catch (err) {
+    console.error('[dashboard] loadDashboard error:', err);
   }
-
-  document.getElementById('dash-month-label').textContent = monthLabel(currentYearMonth);
-
-  destroyCharts();
-  renderSummary(transactions, config);
-  renderBudgetProgress(transactions, categories, config);
-  renderDoughnutChart(transactions, categories);
-  renderBarChart(transactions, categories, config);
-  renderRecentTransactions(transactions, categories);
 }
 
 export async function initDashboard() {
@@ -409,19 +427,24 @@ export async function initDashboard() {
 
     buildLayout(section, people);
 
-    document.getElementById('dash-prev-month').addEventListener('click', () => {
-      currentYearMonth = shiftMonth(currentYearMonth, -1);
-      loadDashboard();
-    });
+    let loading = false;
+    async function navigateMonth(delta) {
+      if (loading) return;
+      loading = true;
+      currentYearMonth = shiftMonth(currentYearMonth, delta);
+      await loadDashboard();
+      loading = false;
+    }
 
-    document.getElementById('dash-next-month').addEventListener('click', () => {
-      currentYearMonth = shiftMonth(currentYearMonth, 1);
-      loadDashboard();
-    });
+    document.getElementById('dash-prev-month').addEventListener('click', () => navigateMonth(-1));
+    document.getElementById('dash-next-month').addEventListener('click', () => navigateMonth(1));
 
-    document.getElementById('dash-person-filter').addEventListener('change', (e) => {
+    document.getElementById('dash-person-filter').addEventListener('change', async (e) => {
+      if (loading) return;
+      loading = true;
       currentPerson = e.target.value;
-      loadDashboard();
+      await loadDashboard();
+      loading = false;
     });
 
     initialized = true;
