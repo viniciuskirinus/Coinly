@@ -219,7 +219,7 @@ function render() {
   }
 
   const history = getHistory(person);
-  const currentSalary = person.salary || 0;
+  const currentSalary = history.length > 0 ? history[history.length - 1].amount : (person.salary || 0);
   const variation = calcVariation(history);
 
   const grid = el('div', { className: 'dash-summary-grid' });

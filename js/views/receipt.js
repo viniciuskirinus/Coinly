@@ -644,10 +644,6 @@ function buildStatementTable() {
     actions.append(personSelect);
   }
 
-  const paySelect = el('select', { className: 'form-select', id: 'stmt-payment', style: { fontSize: 'var(--text-sm)' } });
-  (state.paymentMethods?.methods || []).forEach(m => paySelect.append(el('option', { value: m }, m)));
-  actions.append(paySelect);
-
   const saveBtn = el('button', {
     className: 'btn btn-primary',
     onClick: saveStatementItems
@@ -667,7 +663,7 @@ async function saveStatementItems() {
 
   const people = state.config?.people || [];
   const person = document.getElementById('stmt-person')?.value || (people[0]?.name || '');
-  const paymentMethod = document.getElementById('stmt-payment')?.value || '';
+  const paymentMethod = '';
 
   state.saving = true;
   render();

@@ -260,7 +260,7 @@ function renderDoughnutChart(transactions, categories) {
       plugins: {
         legend: {
           position: 'bottom',
-          labels: { padding: 12, usePointStyle: true, pointStyleWidth: 10, color: c.text, font: { family: "'Inter', sans-serif", size: 11 } }
+          labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', color: c.text, font: { family: "'Inter', sans-serif", size: 11 } }
         },
         tooltip: {
           callbacks: {
@@ -351,7 +351,7 @@ function renderBarChart(transactions, categories, config) {
       plugins: {
         legend: {
           display: datasets.length > 1,
-          labels: { usePointStyle: true, pointStyleWidth: 10, color: c.text, font: { size: 11 } }
+          labels: { usePointStyle: true, pointStyle: 'circle', color: c.text, font: { size: 11 } }
         },
         tooltip: { callbacks: { label(ctx) { return ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`; } } }
       }
