@@ -24,6 +24,7 @@ let state = {
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
+    if (v == null) continue;
     if (k === 'className') node.className = v;
     else if (k === 'style' && typeof v === 'object') Object.assign(node.style, v);
     else if (k.startsWith('on')) node.addEventListener(k.slice(2).toLowerCase(), v);
@@ -647,12 +648,12 @@ function buildStatementTable() {
   (state.paymentMethods?.methods || []).forEach(m => paySelect.append(el('option', { value: m }, m)));
   actions.append(paySelect);
 
-  actions.append(
-    el('button', {
-      className: 'btn btn-primary',
-      disabled: selectedCount === 0 ? 'true' : undefined,
-      onClick: saveStatementItems
-    }, `💾 Salvar ${selectedCount} Selecionados`)
+  const saveBtn = el('button', {
+    className: 'btn btn-primary',
+    onClick: saveStatementItems
+  }, `💾 Salvar ${selectedCount} Selecionados`);
+  if (selectedCount === 0) saveBtn.disabled = true;
+  actions.append(saveBtn
   );
 
   footer.append(actions);
