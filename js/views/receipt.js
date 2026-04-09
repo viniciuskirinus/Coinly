@@ -90,7 +90,7 @@ function buildTabs() {
   const statementBtn = el('button', {
     className: `toggle-option${state.tab === 'statement' ? ' active' : ''}`,
     onClick: () => { state.tab = 'statement'; state.file = null; state.preview = null; state.receiptResult = null; state.statementItems = null; render(); }
-  }, '📄 Fatura');
+  }, '📄 Extrato/Fatura');
 
   tabs.append(receiptBtn, statementBtn);
   return tabs;
@@ -495,11 +495,33 @@ async function handleAnalyzeStatement() {
   }
 }
 
+function buildCategorySelect(item) {
+  const itemType = item.type || 'expense';
+  const cats = state.categories?.[itemType] || [];
+
+  const catSelect = el('select', {
+    className: 'form-select',
+    style: { fontSize: 'var(--text-sm)', padding: '4px' },
+    onChange: (e) => { item.category = e.target.value; }
+  });
+  catSelect.append(el('option', { value: '' }, '—'));
+  cats.forEach(c => {
+    const opt = el('option', { value: c.name }, `${c.icon} ${c.name}`);
+    if (c.name === item.category) opt.selected = true;
+    catSelect.append(opt);
+  });
+  return catSelect;
+}
+
 function buildStatementTable() {
   const items = state.statementItems || [];
-  const expenseCats = state.categories?.expense || [];
 
   const card = el('div', { className: 'card', style: { marginTop: 'var(--sp-4)', overflowX: 'auto' } });
+
+  const incomeCount = items.filter(i => i.type === 'income').length;
+  const expenseCount = items.filter(i => i.type !== 'income').length;
+  const badgeText = `🤖 ${items.length} itens encontrados` +
+    (incomeCount > 0 ? ` (${incomeCount} receita${incomeCount > 1 ? 's' : ''}, ${expenseCount} despesa${expenseCount > 1 ? 's' : ''})` : '');
 
   const badge = el('div', {
     style: {
@@ -509,10 +531,10 @@ function buildStatementTable() {
       background: 'var(--bg-hover)', color: 'var(--accent)',
       marginBottom: 'var(--sp-4)'
     }
-  }, `🤖 ${items.length} itens encontrados`);
+  }, badgeText);
 
   if (!items.length) {
-    card.append(badge, el('p', { style: { color: 'var(--text-secondary)', textAlign: 'center', padding: 'var(--sp-6)' } }, 'Nenhum item identificado na fatura.'));
+    card.append(badge, el('p', { style: { color: 'var(--text-secondary)', textAlign: 'center', padding: 'var(--sp-6)' } }, 'Nenhum item identificado.'));
     return card;
   }
 
@@ -534,6 +556,7 @@ function buildStatementTable() {
     el('th', { style: { width: '40px' } }, selectAllCb),
     el('th', {}, 'Data'),
     el('th', {}, 'Descrição'),
+    el('th', {}, 'Tipo'),
     el('th', {}, 'Categoria'),
     el('th', { style: { textAlign: 'right' } }, 'Valor')
   );
@@ -541,6 +564,7 @@ function buildStatementTable() {
 
   const tbody = el('tbody');
   items.forEach((item) => {
+    if (!item.type) item.type = 'expense';
     const row = el('tr');
 
     const cb = el('input', {
@@ -561,17 +585,22 @@ function buildStatementTable() {
       onChange: (e) => { item.description = e.target.value; }
     });
 
-    const catSelect = el('select', {
+    const typeSelect = el('select', {
       className: 'form-select',
-      style: { fontSize: 'var(--text-sm)', padding: '4px' },
-      onChange: (e) => { item.category = e.target.value; }
+      style: { fontSize: 'var(--text-sm)', padding: '4px', minWidth: '90px' },
+      onChange: (e) => {
+        item.type = e.target.value;
+        item.category = '';
+        render();
+      }
     });
-    catSelect.append(el('option', { value: '' }, '—'));
-    expenseCats.forEach(c => {
-      const opt = el('option', { value: c.name }, `${c.icon} ${c.name}`);
-      if (c.name === item.category) opt.selected = true;
-      catSelect.append(opt);
-    });
+    const expOpt = el('option', { value: 'expense' }, 'Despesa');
+    const incOpt = el('option', { value: 'income' }, 'Receita');
+    if (item.type === 'income') incOpt.selected = true;
+    else expOpt.selected = true;
+    typeSelect.append(expOpt, incOpt);
+
+    const catSelect = buildCategorySelect(item);
 
     const amountInput = el('input', {
       className: 'form-input', type: 'number', step: '0.01', value: String(item.amount || ''),
@@ -583,6 +612,7 @@ function buildStatementTable() {
       el('td', {}, cb),
       el('td', {}, dateInput),
       el('td', {}, descInput),
+      el('td', {}, typeSelect),
       el('td', {}, catSelect),
       el('td', { style: { textAlign: 'right' } }, amountInput)
     );
@@ -651,14 +681,27 @@ async function saveStatementItems() {
       continue;
     }
 
-    const yearMonth = item.date.slice(0, 7);
+    const itemType = item.type || 'expense';
+    let yearMonth = item.date.slice(0, 7);
+    if (itemType === 'expense' && paymentMethod === 'Cartão de Crédito') {
+      const config = state.config;
+      const personObj = config?.people?.find(p => p.name === person);
+      const closingDay = personObj?.creditCard?.closingDay;
+      if (closingDay) {
+        const day = new Date(item.date + 'T12:00:00').getDate();
+        if (day > closingDay) {
+          const d = new Date(new Date(item.date + 'T12:00:00').getFullYear(), new Date(item.date + 'T12:00:00').getMonth() + 1, 1);
+          yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+      }
+    }
     const tempId = -Date.now() - item._id;
     const txnData = {
       id: tempId,
       date: item.date,
       description: item.description,
       amount: item.amount,
-      type: 'expense',
+      type: itemType,
       category: item.category || '',
       subcategory: item.subcategory || '',
       person,
@@ -704,6 +747,17 @@ async function saveStatementItems() {
   }
   if (errorCount > 0) {
     showAlert(`${errorCount} itens com erro.`, 'warning');
+  }
+
+  for (const item of items) {
+    if ((item.type || 'expense') === 'income' && item.amount > 0) {
+      const descLower = (item.description || '').toLowerCase();
+      const isSalary = SALARY_KEYWORDS.some(kw => descLower.includes(kw));
+      if (isSalary) {
+        checkAndOfferSalaryUpdate(person, item.amount);
+        break;
+      }
+    }
   }
 
   state.file = null;

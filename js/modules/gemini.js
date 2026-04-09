@@ -128,7 +128,7 @@ Regras:
 export async function analyzeStatement(imageBase64, mimeType, categories) {
   const catList = buildCategoryList(categories);
 
-  const prompt = `Analise esta imagem de fatura de cartão de crédito e extraia TODAS as transações visíveis.
+  const prompt = `Analise esta imagem de extrato bancário ou fatura e extraia TODAS as transações visíveis, incluindo receitas (salário, transferências recebidas, créditos) e despesas.
 
 ${catList}
 
@@ -139,15 +139,17 @@ Retorne APENAS um JSON válido (sem markdown, sem explicações) com esta estrut
       "date": "YYYY-MM-DD",
       "description": "descrição da transação",
       "amount": 0.00,
-      "category": "nome exato de uma das categorias de despesa acima",
+      "type": "expense ou income",
+      "category": "nome exato de uma das categorias acima (despesa ou receita conforme o type)",
       "subcategory": "subcategoria se aplicável, ou vazio"
     }
   ]
 }
 
 Regras:
-- Extraia TODAS as linhas de transação visíveis na fatura
-- O campo "category" DEVE ser exatamente um dos nomes de despesa listados acima
+- Extraia TODAS as linhas de transação visíveis
+- Identifique se cada transação é "expense" (débito, pagamento, compra) ou "income" (crédito, salário, transferência recebida, depósito)
+- O campo "category" DEVE ser exatamente um dos nomes listados acima, da lista de despesa ou receita conforme o type
 - O valor "amount" deve ser numérico positivo sem símbolo de moeda
 - Se a data não tiver ano, use o ano atual (${new Date().getFullYear()})
 - Use formato YYYY-MM-DD para datas
