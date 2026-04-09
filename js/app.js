@@ -123,11 +123,21 @@ async function checkAuth() {
   let encryptedSecrets = null;
 
   try {
+    const local = JSON.parse(localStorage.getItem('fvk_data_config') || 'null');
+    if (local?.pinHash) {
+      pinHash = local.pinHash;
+      encryptedSecrets = local.encryptedSecrets || null;
+    }
+  } catch { /* ignore */ }
+
+  try {
     const resp = await fetch('./data/config.json', { cache: 'no-store' });
     if (resp.ok) {
       const fresh = await resp.json();
-      pinHash = fresh?.pinHash;
-      encryptedSecrets = fresh?.encryptedSecrets;
+      if (fresh?.pinHash) {
+        pinHash = fresh.pinHash;
+        encryptedSecrets = fresh.encryptedSecrets || encryptedSecrets;
+      }
     }
   } catch { /* offline or not available */ }
 

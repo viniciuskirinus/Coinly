@@ -957,7 +957,7 @@ function buildSecurityContent(container) {
   if (hasPinHash) {
     actions.append(
       el('button', { className: 'btn btn-danger', onClick: removePin }, 'Remover PIN'),
-      el('button', { className: 'btn btn-ghost', onClick: () => { logout(); showAlert('Sessão encerrada. Recarregue a página.', 'info'); } }, 'Sair (Logout)')
+      el('button', { className: 'btn btn-ghost', onClick: () => { logout(); location.reload(); } }, 'Sair (Logout)')
     );
   }
   container.append(actions);
