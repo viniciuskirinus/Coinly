@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'coinly-v2';
+const CACHE_VERSION = 'coinly-v3';
 
 const STATIC_ASSETS = [
   './',

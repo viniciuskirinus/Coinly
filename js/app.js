@@ -9,6 +9,7 @@ import { checkFirstRun, startWizard } from './views/wizard.js';
 import { getConfig } from './modules/data-service.js';
 import { isAuthenticated } from './modules/auth.js';
 import { showLoginScreen } from './views/login.js';
+import { setAlertFunction } from './modules/gemini.js';
 
 const VIEWS = {
   dashboard:   { init: initDashboard },
@@ -181,6 +182,7 @@ window.addEventListener('wizard-complete', () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
+  setAlertFunction(showAlert);
 
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {

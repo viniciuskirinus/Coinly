@@ -39,32 +39,69 @@ function getApiUrl() {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 }
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 5000;
+
+let _showAlertFn = null;
+
+export function setAlertFunction(fn) {
+  _showAlertFn = fn;
+}
+
+function notifyUser(msg, type = 'warning') {
+  if (_showAlertFn) _showAlertFn(msg, type);
+  else console.warn(`[Gemini] ${msg}`);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function isRetryableError(status, body) {
+  if (status === 429) return true;
+  if (status === 503) return true;
+  const msg = (body?.error?.message || '').toLowerCase();
+  return msg.includes('overloaded') || msg.includes('resource exhausted') || msg.includes('temporarily unavailable');
+}
+
 async function callGemini(parts) {
   const key = getGeminiKey();
   if (!key) throw new Error('Chave da API Gemini não configurada.');
 
   const url = getApiUrl();
-  console.log(`[Gemini] modelo: ${getGeminiModel()}`);
+  const model = getGeminiModel();
+  console.log(`[Gemini] modelo: ${model}`);
 
-  const resp = await fetch(`${url}?key=${key}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts }] })
-  });
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const resp = await fetch(`${url}?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts }] })
+    });
 
-  if (!resp.ok) {
+    if (resp.ok) {
+      const data = await resp.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error('Resposta vazia da API Gemini.');
+      return text;
+    }
+
     const body = await resp.json().catch(() => null);
     const msg = body?.error?.message || `HTTP ${resp.status}`;
+
+    if (isRetryableError(resp.status, body) && attempt < MAX_RETRIES) {
+      const waitSec = (RETRY_DELAY_MS * attempt) / 1000;
+      notifyUser(`Modelo ocupado. Tentando novamente em ${waitSec}s... (tentativa ${attempt}/${MAX_RETRIES})`, 'warning');
+      await sleep(RETRY_DELAY_MS * attempt);
+      continue;
+    }
+
     if (resp.status === 400) throw new Error(`Requisição inválida: ${msg}`);
     if (resp.status === 403) throw new Error('Chave da API sem permissão. Verifique nas configurações.');
-    if (resp.status === 429) throw new Error('Limite de requisições atingido. Troque o modelo nas configurações ou aguarde.');
+    if (resp.status === 429) throw new Error('Limite de requisições atingido após várias tentativas. Troque o modelo nas configurações ou aguarde.');
+    if (resp.status === 503) throw new Error('Modelo temporariamente indisponível após várias tentativas. Tente novamente em alguns minutos.');
     throw new Error(`Erro da API Gemini: ${msg}`);
   }
 
-  const data = await resp.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Resposta vazia da API Gemini.');
-  return text;
+  throw new Error('Número máximo de tentativas atingido.');
 }
 
 function extractJSON(text) {

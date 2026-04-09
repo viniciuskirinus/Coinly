@@ -285,25 +285,53 @@ function renderCardList(section) {
     return;
   }
 
-  list.innerHTML = txns.map(t => `
-    <div class="txn-card ${viewState.selectedIds.has(t.id) ? 'txn-card-selected' : ''}" data-id="${t.id}">
-      <label class="txn-card-check">
-        <input type="checkbox" class="stmt-card-check" data-id="${t.id}" ${viewState.selectedIds.has(t.id) ? 'checked' : ''}>
+  const allChecked = txns.length > 0 && txns.every(t => viewState.selectedIds.has(t.id));
+
+  let html = `
+    <div class="stmt-select-all-row">
+      <label class="stmt-select-all-label">
+        <input type="checkbox" id="stmt-card-check-all" ${allChecked ? 'checked' : ''}>
+        <span>Selecionar todos (${txns.length})</span>
       </label>
-      <div class="txn-card-icon">${getCategoryIcon(t.category)}</div>
-      <div class="txn-card-info">
-        <div class="txn-card-desc">${escapeHtml(t.description)} ${getSyncBadge(t.id)}</div>
-        <div class="txn-card-meta">${formatDate(t.date)} · ${escapeHtml(t.category)}${t.person ? ' · ' + escapeHtml(t.person) : ''}</div>
+    </div>
+  `;
+
+  html += txns.map(t => `
+    <div class="txn-card ${viewState.selectedIds.has(t.id) ? 'txn-card-selected' : ''}" data-id="${t.id}">
+      <div class="txn-card-top">
+        <label class="txn-card-check">
+          <input type="checkbox" class="stmt-card-check" data-id="${t.id}" ${viewState.selectedIds.has(t.id) ? 'checked' : ''}>
+        </label>
+        <span class="txn-card-icon">${getCategoryIcon(t.category)}</span>
+        <div class="txn-card-info">
+          <div class="txn-card-desc">${escapeHtml(t.description)} ${getSyncBadge(t.id)}</div>
+          <div class="txn-card-meta">${formatDate(t.date)} · ${escapeHtml(t.category)}${t.person ? ' · ' + escapeHtml(t.person) : ''}</div>
+        </div>
       </div>
-      <div class="txn-card-amount ${t.type === 'income' ? 'amount-income' : 'amount-expense'}">
-        ${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}
-      </div>
-      <div class="txn-card-actions">
-        <button class="btn-icon stmt-edit" data-id="${t.id}" title="Editar">✏️</button>
-        <button class="btn-icon stmt-delete" data-id="${t.id}" title="Excluir">🗑️</button>
+      <div class="txn-card-bottom">
+        <span class="txn-card-amount ${t.type === 'income' ? 'amount-income' : 'amount-expense'}">
+          ${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}
+        </span>
+        <div class="txn-card-actions">
+          <button class="btn-icon stmt-edit" data-id="${t.id}" title="Editar">✏️</button>
+          <button class="btn-icon stmt-delete" data-id="${t.id}" title="Excluir">🗑️</button>
+        </div>
       </div>
     </div>
   `).join('');
+
+  list.innerHTML = html;
+
+  list.querySelector('#stmt-card-check-all')?.addEventListener('change', (e) => {
+    const checked = e.target.checked;
+    txns.forEach(t => {
+      if (checked) viewState.selectedIds.add(t.id);
+      else viewState.selectedIds.delete(t.id);
+    });
+    renderCardList(section);
+    renderTable(section);
+    updateBulkBar(section);
+  });
 
   list.querySelectorAll('.stmt-card-check').forEach(cb => {
     cb.addEventListener('change', (e) => {
@@ -313,6 +341,9 @@ function renderCardList(section) {
       const card = e.target.closest('.txn-card');
       if (card) card.classList.toggle('txn-card-selected', e.target.checked);
       updateBulkBar(section);
+
+      const checkAll = list.querySelector('#stmt-card-check-all');
+      if (checkAll) checkAll.checked = txns.every(t => viewState.selectedIds.has(t.id));
     });
   });
 

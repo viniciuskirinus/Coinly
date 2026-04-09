@@ -413,20 +413,40 @@
   border-radius: var(--radius);
   padding: var(--sp-3) var(--sp-4);
   margin-bottom: var(--sp-2);
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
   box-shadow: var(--shadow-sm);
   transition: var(--ease);
 }
+.txn-card-top { display: flex; align-items: center; gap: var(--sp-2); }
+.txn-card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: var(--sp-1); padding-left: 38px; }
 .txn-card-check { display: flex; align-items: center; flex-shrink: 0; }
 .txn-card-selected { background: var(--accent-muted); }
-.txn-card-icon { font-size: 20px; flex-shrink: 0; }
+.txn-card-icon { font-size: 18px; flex-shrink: 0; }
 .txn-card-info { flex: 1; min-width: 0; }
 .txn-card-desc { font-weight: 600; font-size: var(--text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.txn-card-meta { font-size: var(--text-xs); color: var(--text-tertiary); }
+.txn-card-meta { font-size: var(--text-xs); color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .txn-card-amount { font-weight: 700; font-size: var(--text-sm); white-space: nowrap; }
-.txn-card-actions { display: flex; gap: var(--sp-1); }
+.txn-card-actions { display: flex; gap: var(--sp-1); flex-shrink: 0; }
+
+/* ── Select All Row (mobile) ── */
+.stmt-select-all-row {
+  padding: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-2);
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.stmt-select-all-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.stmt-select-all-label input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer;
+}
 
 /* ── Budget ── */
 .budget-item { margin-bottom: var(--sp-4); }
@@ -486,11 +506,17 @@
   .data-table th { padding: 6px 8px; font-size: 10px; }
   .data-table td { padding: 8px; font-size: 12px; }
 
-  .txn-card { padding: var(--sp-2) var(--sp-3); gap: var(--sp-2); }
-  .txn-card-icon { font-size: 18px; }
+  .txn-card { padding: var(--sp-2) var(--sp-3); }
+  .txn-card-top { gap: var(--sp-2); }
+  .txn-card-bottom { padding-left: 34px; margin-top: 2px; }
+  .txn-card-icon { font-size: 16px; }
   .txn-card-desc { font-size: 12px; }
   .txn-card-meta { font-size: 10px; }
   .txn-card-amount { font-size: 12px; }
+  .txn-card-actions .btn-icon { min-width: 26px; min-height: 26px; font-size: 13px; }
+
+  .stmt-select-all-row { padding: 6px 10px; }
+  .stmt-select-all-label { font-size: 12px; }
 
   .empty-state { padding: var(--sp-6) var(--sp-4); }
   .empty-state .empty-icon { font-size: 32px; }
