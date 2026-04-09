@@ -3,7 +3,7 @@ import { dispatch } from '../modules/github-api.js';
 import { formatCurrency } from '../modules/format.js';
 import { getState, setState, addPendingSync, resolvePendingSync } from '../modules/state.js';
 import { isGeminiConfigured, analyzeReceipt, analyzeStatement, compressImage } from '../modules/gemini.js';
-import { showAlert, navigate } from '../app.js';
+import { showAlert, showConfirm, navigate } from '../app.js';
 import { recordSalaryChange } from './salary-history.js';
 
 const SALARY_KEYWORDS = ['salário', 'salario', 'salary', 'holerite', 'pagamento mensal', 'remuneração', 'remuneracao', 'folha de pagamento', 'vencimento', 'proventos'];
@@ -412,7 +412,7 @@ async function saveReceiptTransaction(form, people) {
 
     const dupes = findDuplicates(fileData.transactions, txnData);
     if (dupes.length > 0) {
-      const proceed = confirm(`⚠️ Possível duplicata!\n\nJá existe transação em ${dateVal} com "${description}" no valor de R$ ${amount.toFixed(2)}.\n\nDeseja salvar mesmo assim?`);
+      const proceed = await showConfirm('Possível duplicata', `Já existe transação em ${dateVal} com "${description}" no valor de R$ ${amount.toFixed(2)}.\n\nDeseja salvar mesmo assim?`, { confirmText: 'Salvar mesmo assim' });
       if (!proceed) {
         submitBtn.disabled = false;
         submitBtn.textContent = '💾 Salvar Transação';
@@ -782,8 +782,8 @@ async function checkAndOfferSalaryUpdate(personName, amount, yearMonth) {
   const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   const monthLabel = `${monthNames[parseInt(m) - 1]}/${y}`;
 
-  const msg = `Salário detectado: ${formatCurrency(amount)}.\n\nRegistrar como salário de "${person.name}" para ${monthLabel}?`;
-  if (!confirm(msg)) return;
+  const msg = `Salário detectado: ${formatCurrency(amount)}.\nRegistrar como salário de "${person.name}" para ${monthLabel}?`;
+  if (!await showConfirm('Salário detectado', msg, { confirmText: 'Registrar' })) return;
 
   await recordSalaryChange(personName, amount, yearMonth);
   showAlert(`Salário de ${monthLabel} registrado: ${formatCurrency(amount)}`, 'success');

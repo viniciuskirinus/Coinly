@@ -1,7 +1,7 @@
 import { getSavings, getConfig, putCacheEntry } from '../modules/data-service.js';
 import { dispatch } from '../modules/github-api.js';
 import { formatCurrency, formatDate } from '../modules/format.js';
-import { showAlert } from '../app.js';
+import { showAlert, showConfirm } from '../app.js';
 
 let state = {
   savings: null,
@@ -146,8 +146,8 @@ function renderDepositHistory(deposits, goalId) {
   return wrapper;
 }
 
-function removeDeposit(depositId, goalId) {
-  if (!confirm('Remover este lancamento?')) return;
+async function removeDeposit(depositId, goalId) {
+  if (!await showConfirm('Remover lançamento', 'Remover este lançamento?', { confirmText: 'Remover', danger: true })) return;
   state.savings.deposits = state.savings.deposits.filter(d => d.id !== depositId);
   render();
   showAlert('Lancamento removido!', 'success');
@@ -195,9 +195,9 @@ async function saveDeposit(goalId, isWithdraw, currentTotal) {
   await save(state.savings);
 }
 
-function removeGoal(id) {
+async function removeGoal(id) {
   const goal = state.savings.goals.find(g => g.id === id);
-  if (!confirm(`Remover meta "${goal?.name}"? Depositos associados tambem serao removidos.`)) return;
+  if (!await showConfirm('Remover meta', `Remover meta "${goal?.name}"?\nDepósitos associados também serão removidos.`, { confirmText: 'Remover', danger: true })) return;
 
   state.savings.goals = state.savings.goals.filter(g => g.id !== id);
   state.savings.deposits = state.savings.deposits.filter(d => d.goalId !== id);

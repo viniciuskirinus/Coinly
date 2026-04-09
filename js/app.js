@@ -38,20 +38,77 @@ export function navigate(viewName) {
   VIEWS[viewName]?.init();
 }
 
+const ALERT_ICONS = {
+  success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️'
+};
+
 export function showAlert(message, type = 'info') {
   const container = document.getElementById('alert-container');
   if (!container) return;
 
   const alert = document.createElement('div');
   alert.className = `alert alert-${type}`;
-  alert.textContent = message;
+  alert.innerHTML = `
+    <span class="alert-icon">${ALERT_ICONS[type] || ALERT_ICONS.info}</span>
+    <span class="alert-text">${escapeHtml(message)}</span>
+    <button class="alert-close" aria-label="Fechar">&times;</button>
+  `;
+  alert.querySelector('.alert-close').addEventListener('click', () => {
+    alert.style.opacity = '0';
+    alert.style.transform = 'translateX(40px)';
+    setTimeout(() => alert.remove(), 200);
+  });
   container.appendChild(alert);
+  requestAnimationFrame(() => alert.classList.add('alert-show'));
 
   setTimeout(() => {
+    if (!alert.parentNode) return;
     alert.style.opacity = '0';
-    alert.style.transition = 'opacity 300ms ease';
-    setTimeout(() => alert.remove(), 300);
+    alert.style.transform = 'translateX(40px)';
+    setTimeout(() => alert.remove(), 200);
   }, 5000);
+}
+
+export function showConfirm(title, message, { confirmText = 'Confirmar', cancelText = 'Cancelar', danger = false } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal confirm-modal">
+        <div class="modal-header">
+          <h3>${escapeHtml(title)}</h3>
+          <button class="modal-close confirm-dismiss" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="confirm-dialog">
+          <p>${escapeHtml(message)}</p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost confirm-dismiss">${escapeHtml(cancelText)}</button>
+          <button class="btn ${danger ? 'btn-danger' : 'btn-primary'} confirm-accept">${escapeHtml(confirmText)}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const close = (result) => {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 150ms ease';
+      setTimeout(() => overlay.remove(), 150);
+      resolve(result);
+    };
+
+    overlay.querySelectorAll('.confirm-dismiss').forEach(b => b.addEventListener('click', () => close(false)));
+    overlay.querySelector('.confirm-accept').addEventListener('click', () => close(true));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+
+    const acceptBtn = overlay.querySelector('.confirm-accept');
+    requestAnimationFrame(() => acceptBtn.focus());
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ── Theme ──

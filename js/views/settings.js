@@ -2,7 +2,7 @@ import { getConfig, getCategories, getPaymentMethods, putCacheEntry } from '../m
 import { dispatch, testConnection } from '../modules/github-api.js';
 import { isWizardDone, getRepoConfig, saveRepoConfig } from '../modules/storage.js';
 import { formatCurrency } from '../modules/format.js';
-import { showAlert } from '../app.js';
+import { showAlert, showConfirm } from '../app.js';
 import { getGeminiKey, saveGeminiKey, isGeminiConfigured, testApiKey, getGeminiModel, saveGeminiModel, getAvailableModels } from '../modules/gemini.js';
 import { hashPin, logout, encryptSecrets } from '../modules/auth.js';
 
@@ -195,13 +195,13 @@ async function savePerson(id, isNew) {
   }
 }
 
-function removePerson(id) {
+async function removePerson(id) {
   if (state.config.people.length <= 1) {
     showAlert('É necessário manter ao menos uma pessoa.', 'error');
     return;
   }
   const person = state.config.people.find(p => p.id === id);
-  if (!confirm(`Remover "${person?.name}"? Esta ação não pode ser desfeita.`)) return;
+  if (!await showConfirm('Remover pessoa', `Remover "${person?.name}"? Esta ação não pode ser desfeita.`, { confirmText: 'Remover', danger: true })) return;
 
   const people = state.config.people.filter(p => p.id !== id);
   state.config.people = people;
@@ -382,9 +382,9 @@ async function saveCategory(type, index, formId, subs) {
   }
 }
 
-function removeCategory(type, index) {
+async function removeCategory(type, index) {
   const cat = state.categories[type][index];
-  if (!confirm(`Remover categoria "${cat.name}"?`)) return;
+  if (!await showConfirm('Remover categoria', `Remover categoria "${cat.name}"?`, { confirmText: 'Remover', danger: true })) return;
 
   const cats = JSON.parse(JSON.stringify(state.categories));
   cats[type].splice(index, 1);
@@ -562,7 +562,7 @@ async function saveBudgets(personName, expenseCategories) {
 }
 
 async function clearBudgets(personName) {
-  if (!confirm(`Limpar todos os orçamentos de "${personName}"?`)) return;
+  if (!await showConfirm('Limpar orçamentos', `Limpar todos os orçamentos de "${personName}"?`, { confirmText: 'Limpar', danger: true })) return;
 
   const budgets = { ...(state.config?.budgets || {}) };
   delete budgets[personName];
@@ -657,9 +657,9 @@ async function addPaymentMethod() {
   }
 }
 
-function removePaymentMethod(index) {
+async function removePaymentMethod(index) {
   const method = state.paymentMethods.methods[index];
-  if (!confirm(`Remover "${method}"?`)) return;
+  if (!await showConfirm('Remover método', `Remover "${method}"?`, { confirmText: 'Remover', danger: true })) return;
 
   const methods = state.paymentMethods.methods.filter((_, i) => i !== index);
   state.paymentMethods = { ...state.paymentMethods, methods };
@@ -902,8 +902,8 @@ function buildGeminiContent(container) {
   const clearBtn = el('button', {
     className: 'btn btn-ghost',
     style: { color: 'var(--color-expense)' },
-    onClick: () => {
-      if (!confirm('Remover a chave da API Gemini?')) return;
+    onClick: async () => {
+      if (!await showConfirm('Remover chave', 'Remover a chave da API Gemini?', { confirmText: 'Remover', danger: true })) return;
       saveGeminiKey('');
       showAlert('Chave removida.', 'success');
       render();
@@ -1009,7 +1009,7 @@ async function savePin() {
 }
 
 async function removePin() {
-  if (!confirm('Remover o PIN? Qualquer pessoa poderá acessar o sistema. Os segredos (PAT/Gemini) ficarão apenas no localStorage.')) return;
+  if (!await showConfirm('Remover PIN', 'Remover o PIN? Qualquer pessoa poderá acessar o sistema.\nOs segredos (PAT/Gemini) ficarão apenas no localStorage.', { confirmText: 'Remover PIN', danger: true })) return;
 
   state.saving = true;
   render();

@@ -2,7 +2,7 @@ import { getConfig, getCategories, getTransactions, getPaymentMethods, putCacheE
 import { dispatch } from '../modules/github-api.js';
 import { formatCurrency, formatDate, getCurrentYearMonth } from '../modules/format.js';
 import { getState, setState, addPendingSync, resolvePendingSync } from '../modules/state.js';
-import { showAlert } from '../app.js';
+import { showAlert, showConfirm } from '../app.js';
 
 let viewState = {
   yearMonth: getCurrentYearMonth(),
@@ -535,26 +535,20 @@ async function handleEdit(id, overlay, section, editType) {
 
 // --- Delete ---
 
-function confirmSingleDelete(id, section) {
+async function confirmSingleDelete(id, section) {
   const txn = viewState.allTransactions.find(t => t.id === id);
   if (!txn) return;
 
-  showConfirmModal(
-    'Excluir Transação',
-    `Tem certeza que deseja excluir "${escapeHtml(txn.description)}"?`,
-    () => executeDelete([id], section)
-  );
+  const ok = await showConfirm('Excluir transação', `Tem certeza que deseja excluir "${escapeHtml(txn.description)}"?`, { confirmText: 'Excluir', danger: true });
+  if (ok) executeDelete([id], section);
 }
 
-function confirmBulkDelete(section) {
+async function confirmBulkDelete(section) {
   const count = viewState.selectedIds.size;
   if (count === 0) return;
 
-  showConfirmModal(
-    'Excluir Transações',
-    `Tem certeza que deseja excluir ${count} transação(ões)?`,
-    () => executeDelete([...viewState.selectedIds], section)
-  );
+  const ok = await showConfirm('Excluir transações', `Tem certeza que deseja excluir ${count} transação(ões)?`, { confirmText: 'Excluir', danger: true });
+  if (ok) executeDelete([...viewState.selectedIds], section);
 }
 
 async function executeDelete(ids, section) {
@@ -586,39 +580,6 @@ async function executeDelete(ids, section) {
     console.error('delete dispatch error:', err);
     resolvePendingSync(syncId, false);
   }
-}
-
-// --- Confirm Modal ---
-
-function showConfirmModal(title, message, onConfirm) {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal" style="max-width:400px">
-      <div class="modal-header">
-        <h3>${title}</h3>
-        <button class="modal-close confirm-close">✕</button>
-      </div>
-      <div class="confirm-dialog">
-        <p>${message}</p>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-ghost confirm-close">Cancelar</button>
-        <button class="btn btn-danger" id="confirm-yes">Excluir</button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-
-  const close = () => overlay.remove();
-  overlay.querySelectorAll('.confirm-close').forEach(b => b.addEventListener('click', close));
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-
-  overlay.querySelector('#confirm-yes').addEventListener('click', () => {
-    close();
-    onConfirm();
-  });
 }
 
 // --- Helpers ---

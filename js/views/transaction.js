@@ -2,7 +2,7 @@ import { getConfig, getCategories, getPaymentMethods, getTransactions, putCacheE
 import { dispatch } from '../modules/github-api.js';
 import { formatCurrency } from '../modules/format.js';
 import { getState, setState, addPendingSync, resolvePendingSync } from '../modules/state.js';
-import { showAlert } from '../app.js';
+import { showAlert, showConfirm } from '../app.js';
 import { isGeminiConfigured, suggestCategory } from '../modules/gemini.js';
 import { recordSalaryChange } from './salary-history.js';
 
@@ -323,7 +323,7 @@ async function handleSubmit(section, config, categories, people, currentType) {
 
     const dupes = findDuplicates(fileData.transactions, txnData);
     if (dupes.length > 0) {
-      const proceed = confirm(`⚠️ Possível duplicata!\n\nJá existe transação em ${dateVal} com "${description}" no valor de R$ ${amount.toFixed(2)}.\n\nDeseja salvar mesmo assim?`);
+      const proceed = await showConfirm('Possível duplicata', `Já existe transação em ${dateVal} com "${description}" no valor de R$ ${amount.toFixed(2)}.\n\nDeseja salvar mesmo assim?`, { confirmText: 'Salvar mesmo assim' });
       if (!proceed) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Registrar Transação';
@@ -384,7 +384,7 @@ async function checkSalaryUpdate(config, personName, amount, yearMonth) {
   const monthLabel = `${monthNames[parseInt(m) - 1]}/${y}`;
 
   const msg = `Salário detectado: ${formatCurrency(amount)}.\nRegistrar como salário de "${person.name}" para ${monthLabel}?`;
-  if (!confirm(msg)) return;
+  if (!await showConfirm('Salário detectado', msg, { confirmText: 'Registrar' })) return;
 
   await recordSalaryChange(personName, amount, yearMonth);
   showAlert(`Salário de ${monthLabel} registrado: ${formatCurrency(amount)}`, 'success');
