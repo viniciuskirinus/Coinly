@@ -615,6 +615,63 @@ function buildDatabaseContent(container) {
   container.append(el('p', { style: { color: 'var(--text-secondary)', fontSize: 'var(--text-sm)', marginTop: 'var(--sp-4)' } }, 'Os dados são salvos diretamente no Supabase. Não é necessário configuração adicional.'));
 }
 
+// ─── Theme Toggle (mobile) ───
+
+function buildThemeToggle() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  const row = el('div', {
+    className: 'card',
+    style: {
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: 'var(--sp-4) var(--sp-5)', marginBottom: 'var(--sp-3)', cursor: 'pointer'
+    },
+    onClick: () => {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (dark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('coinly_theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('coinly_theme', 'dark');
+      }
+      const lightIcon = document.getElementById('theme-icon-light');
+      const darkIcon = document.getElementById('theme-icon-dark');
+      const label = document.getElementById('theme-label');
+      if (lightIcon) lightIcon.style.display = !dark ? 'none' : '';
+      if (darkIcon) darkIcon.style.display = !dark ? '' : 'none';
+      if (label) label.textContent = !dark ? 'Modo claro' : 'Modo escuro';
+      render();
+    }
+  });
+
+  const left = el('div', { style: { display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' } });
+  left.append(
+    el('span', { style: { fontSize: '20px' } }, isDark ? '🌙' : '☀️'),
+    el('span', { style: { fontWeight: '600' } }, isDark ? 'Modo Escuro' : 'Modo Claro')
+  );
+
+  const toggle = el('div', {
+    style: {
+      width: '44px', height: '24px', borderRadius: '12px',
+      background: isDark ? 'var(--accent)' : 'var(--border)',
+      position: 'relative', transition: 'background 0.2s ease', flexShrink: '0'
+    }
+  });
+  const knob = el('div', {
+    style: {
+      width: '20px', height: '20px', borderRadius: '50%',
+      background: 'white', position: 'absolute', top: '2px',
+      left: isDark ? '22px' : '2px', transition: 'left 0.2s ease',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+    }
+  });
+  toggle.append(knob);
+
+  row.append(left, toggle);
+  return row;
+}
+
 // ─── Main Render ───
 
 function render() {
@@ -631,6 +688,7 @@ function render() {
   }
   section.append(header);
 
+  section.append(buildThemeToggle());
   section.append(buildAccordion('seguranca', 'Segurança', buildSecurityContent));
   section.append(buildAccordion('pessoas', 'Pessoas', buildPeopleContent));
   section.append(buildAccordion('categorias', 'Categorias', buildCategoriesContent));
