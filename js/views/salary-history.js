@@ -246,16 +246,17 @@ function render() {
   );
   section.append(grid);
 
+  const mob = window.innerWidth <= 768;
   const chartsRow = el('div', { className: 'dash-charts-row' });
 
   const chartCard1 = el('div', { className: 'card' });
-  chartCard1.append(el('h3', { style: { marginBottom: 'var(--sp-3)' } }, 'Progressao Salarial'));
-  chartCard1.append(el('div', { id: 'salary-chart-container', style: { height: '260px' } }));
+  chartCard1.append(el('h3', { style: { marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-3)', fontSize: mob ? '13px' : 'inherit' } }, 'Progressao Salarial'));
+  chartCard1.append(el('div', { id: 'salary-chart-container', style: { height: mob ? '200px' : '260px' } }));
   chartsRow.append(chartCard1);
 
   const chartCard2 = el('div', { className: 'card' });
-  chartCard2.append(el('h3', { style: { marginBottom: 'var(--sp-3)' } }, 'Salario vs Despesas'));
-  chartCard2.append(el('div', { id: 'salary-vs-expenses-container', style: { height: '260px' } }));
+  chartCard2.append(el('h3', { style: { marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-3)', fontSize: mob ? '13px' : 'inherit' } }, 'Salario vs Despesas'));
+  chartCard2.append(el('div', { id: 'salary-vs-expenses-container', style: { height: mob ? '200px' : '260px' } }));
   chartsRow.append(chartCard2);
 
   section.append(chartsRow);

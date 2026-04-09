@@ -97,13 +97,16 @@ function buildTabs() {
   return tabs;
 }
 
+function isMobile() { return window.innerWidth <= 768; }
+
 function buildUploadArea(onFileSelected) {
+  const mob = isMobile();
   const area = el('div', {
     className: 'card',
     style: {
       border: '2px dashed var(--border)',
       textAlign: 'center',
-      padding: 'var(--sp-10)',
+      padding: mob ? 'var(--sp-6)' : 'var(--sp-10)',
       cursor: 'pointer',
       transition: 'border-color 0.2s, background 0.2s'
     }
@@ -139,24 +142,25 @@ function buildUploadArea(onFileSelected) {
 
   area.append(
     input,
-    el('div', { style: { fontSize: '48px', marginBottom: 'var(--sp-4)' } }, '📷'),
-    el('p', { style: { fontWeight: '600', marginBottom: 'var(--sp-1)' } }, 'Clique ou arraste um arquivo'),
-    el('p', { style: { color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' } }, 'JPG, PNG, WebP, HEIC ou PDF')
+    el('div', { style: { fontSize: mob ? '36px' : '48px', marginBottom: 'var(--sp-3)' } }, '📷'),
+    el('p', { style: { fontWeight: '600', marginBottom: 'var(--sp-1)', fontSize: mob ? '13px' : 'inherit' } }, 'Clique ou arraste um arquivo'),
+    el('p', { style: { color: 'var(--text-secondary)', fontSize: mob ? '11px' : 'var(--text-sm)' } }, 'JPG, PNG, WebP, HEIC ou PDF')
   );
 
   return area;
 }
 
 function buildPreviewBar(onAnalyze, label) {
+  const mob = isMobile();
   const bar = el('div', {
     className: 'card',
-    style: { display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', padding: 'var(--sp-4)' }
+    style: { display: 'flex', alignItems: 'center', gap: mob ? 'var(--sp-2)' : 'var(--sp-4)', padding: mob ? 'var(--sp-3)' : 'var(--sp-4)' }
   });
 
   if (state.preview) {
     const thumb = el('img', {
       src: state.preview,
-      style: { width: '60px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius)' }
+      style: { width: mob ? '44px' : '60px', height: mob ? '44px' : '60px', objectFit: 'cover', borderRadius: 'var(--radius)' }
     });
     bar.append(thumb);
   }
@@ -650,9 +654,11 @@ function buildStatementTable() {
 
   const saveBtn = el('button', {
     className: 'btn btn-primary',
+    id: 'stmt-save-btn',
     onClick: saveStatementItems
   }, `💾 Salvar ${selectedCount}`);
-  if (selectedCount === 0) saveBtn.disabled = true;
+  if (selectedCount === 0 || state.saving) saveBtn.disabled = true;
+  if (state.saving) saveBtn.textContent = 'Salvando...';
   actions.append(saveBtn);
 
   footer.append(actions);
@@ -661,6 +667,8 @@ function buildStatementTable() {
 }
 
 async function saveStatementItems() {
+  if (state.saving) return;
+
   const items = (state.statementItems || []).filter(i => i._selected);
   if (!items.length) { showAlert('Nenhum item selecionado.', 'error'); return; }
 
@@ -669,7 +677,9 @@ async function saveStatementItems() {
   const paymentMethod = '';
 
   state.saving = true;
-  render();
+
+  const saveBtn = document.querySelector('#stmt-save-btn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Salvando...'; }
 
   let successCount = 0;
   let errorCount = 0;

@@ -448,12 +448,52 @@
 .budget-settings-input .currency-label { font-size: var(--text-xs); color: var(--text-tertiary); font-weight: 600; flex-shrink: 0; }
 
 @media (max-width: 768px) {
+  .card { padding: var(--sp-4); }
+
+  .btn { padding: 6px 12px; font-size: 12px; }
+  .btn-icon { min-width: 28px; min-height: 28px; font-size: 14px; }
+
+  .form-group { margin-bottom: var(--sp-3); }
+  .form-input, .form-select { padding: 6px 10px; font-size: 13px; }
+  .form-label { font-size: 10px; }
+
+  .toggle-group { font-size: 12px; }
+  .toggle-option { padding: 6px 8px; font-size: 12px; }
+
+  .section-header { margin-bottom: var(--sp-4); }
+
+  .filter-bar { gap: var(--sp-1); margin-bottom: var(--sp-3); }
+  .filter-bar .form-select, .filter-bar .form-input { font-size: 12px; padding: 6px 8px; }
+
+  .bulk-bar { padding: 6px 10px; font-size: 12px; gap: var(--sp-1); }
+
   .budget-settings-row {
     flex-wrap: wrap;
     gap: var(--sp-2);
   }
-  .budget-settings-category { min-width: auto; flex: 1; }
-  .budget-settings-input { max-width: none; min-width: 120px; }
+  .budget-settings-category { min-width: auto; flex: 1; font-size: 12px; }
+  .budget-settings-input { max-width: none; min-width: 100px; }
+  .budget-settings-input .form-input { font-size: 12px; }
+
+  .budget-item-header { font-size: 12px; }
+  .budget-item-values { font-size: 10px; }
+
+  .chip { padding: 1px 8px; font-size: 10px; }
+
+  .accordion-header { padding: var(--sp-3); font-size: 13px; }
+  .accordion-body { padding: var(--sp-3); }
+
+  .data-table th { padding: 6px 8px; font-size: 10px; }
+  .data-table td { padding: 8px; font-size: 12px; }
+
+  .txn-card { padding: var(--sp-2) var(--sp-3); gap: var(--sp-2); }
+  .txn-card-icon { font-size: 18px; }
+  .txn-card-desc { font-size: 12px; }
+  .txn-card-meta { font-size: 10px; }
+  .txn-card-amount { font-size: 12px; }
+
+  .empty-state { padding: var(--sp-6) var(--sp-4); }
+  .empty-state .empty-icon { font-size: 32px; }
 }
 
 /* ── Confirm Dialog ── */
@@ -463,13 +503,15 @@
 
 @media (max-width: 768px) {
   .modal {
-    width: 95%;
+    width: 94%;
     max-width: none;
     padding: var(--sp-4);
     margin: var(--sp-2);
   }
   .modal-overlay { padding: var(--sp-2); }
   .modal-header { margin-bottom: var(--sp-3); }
-  .modal-actions { flex-wrap: wrap; }
-  .modal-actions .btn { flex: 1; min-width: 0; }
+  .modal-header h3 { font-size: 15px; }
+  .modal-actions { flex-wrap: wrap; gap: var(--sp-1); }
+  .modal-actions .btn { flex: 1; min-width: 0; font-size: 12px; padding: 8px 10px; }
+  .confirm-dialog p { font-size: 13px; }
 }

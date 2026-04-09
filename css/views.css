@@ -15,14 +15,14 @@
 
 @media (max-width: 768px) {
   .wizard-container {
-    width: 100%;
+    width: 96%;
     max-width: none;
-    padding: var(--sp-5);
+    padding: var(--sp-4);
     border-radius: var(--radius);
     max-height: 95vh;
   }
-  .wizard-actions { flex-wrap: wrap; }
-  .wizard-actions .btn { flex: 1; min-width: 0; }
+  .wizard-actions { flex-wrap: wrap; gap: var(--sp-1); }
+  .wizard-actions .btn { flex: 1; min-width: 0; font-size: 12px; }
 }
 
 /* ── Dashboard ── */
@@ -108,40 +108,56 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .filter-bar { flex-direction: column; }
+  .filter-bar { flex-direction: column; gap: var(--sp-1); }
   .filter-bar .form-select, .filter-bar .form-input { width: 100%; min-width: unset; }
   .data-table-wrapper { display: none; }
   .txn-card-list { display: block; }
-  .section-header { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
-  .section-header h2 { font-size: var(--text-lg); }
-  .dash-header { flex-direction: column; align-items: flex-start; }
+  .section-header { flex-direction: column; align-items: flex-start; gap: var(--sp-1); }
+  .section-header h2 { font-size: 1rem; }
+
+  /* Dashboard */
+  .dash-header { flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+  .dash-header h2 { font-size: 1.05rem; }
   .dash-controls { width: 100%; justify-content: space-between; }
-  .dash-month-text { font-size: var(--text-sm); min-width: 100px; }
-  .dash-summary-grid { grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
-  .summary-card { padding: var(--sp-3) var(--sp-4); }
-  .summary-card__value { font-size: var(--text-lg); }
-  .summary-card__label { font-size: 10px; }
-  .dash-charts-row { grid-template-columns: 1fr; }
-  .dash-chart-wrapper { height: 240px; }
+  .dash-controls .form-select { font-size: 12px; padding: 4px 8px; min-width: 90px; }
+  .dash-month-nav .btn { padding: 4px 8px; font-size: 13px; }
+  .dash-month-text { font-size: 13px; font-weight: 600; min-width: 100px; }
+  .dash-summary-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .summary-card { padding: 10px 12px; }
+  .summary-card__value { font-size: 15px; }
+  .summary-card__label { font-size: 9px; letter-spacing: 0.02em; }
+  .summary-card__hint { font-size: 9px; }
+  .summary-card__bar { margin-top: 4px; height: 3px; }
+  .dash-charts-row { grid-template-columns: 1fr; gap: var(--sp-3); }
+  .dash-chart-card { padding: var(--sp-3); }
+  .dash-chart-card h3 { font-size: 13px; margin-bottom: var(--sp-2) !important; }
+  .dash-chart-wrapper { height: 200px; }
+  #dash-budget-progress .card { padding: var(--sp-3); }
+  #dash-budget-progress h3 { font-size: 13px; }
+  #dash-recent { padding: var(--sp-3); }
+  #dash-recent h3 { font-size: 13px; }
+
+  /* Savings */
   .savings-grid { grid-template-columns: 1fr; }
-  .savings-card { padding: var(--sp-4); }
-  .savings-card__actions { flex-wrap: wrap; }
-  .savings-card__actions .btn { flex: 1; min-width: 0; font-size: var(--text-sm); }
+  .savings-card { padding: var(--sp-3); gap: var(--sp-2); }
+  .savings-card__name { font-size: 14px; }
+  .savings-card__amount { font-size: 1rem; }
+  .savings-card__actions { flex-wrap: wrap; gap: var(--sp-1); }
+  .savings-card__actions .btn { flex: 1; min-width: 0; font-size: 11px; padding: 6px 8px; }
 
-  .accordion-header { padding: var(--sp-3) var(--sp-4); font-size: var(--text-sm); }
-  .accordion-body { padding: var(--sp-3) var(--sp-4); }
+  /* Login */
+  .login-box { padding: var(--sp-5); margin: var(--sp-3); }
+  .login-box h1 { font-size: 1.1rem; }
+  .login-box p { font-size: 12px; }
 
-  .toggle-group { font-size: var(--text-sm); }
-  .toggle-option { padding: var(--sp-2) var(--sp-2); font-size: var(--text-sm); }
-
-  .bulk-bar { flex-wrap: wrap; padding: var(--sp-2) var(--sp-3); font-size: var(--text-sm); gap: var(--sp-2); }
-
-  .login-box { padding: var(--sp-6); margin: var(--sp-4); }
+  /* Wizard */
+  .wizard-container { padding: var(--sp-4); }
+  .wizard-actions .btn { font-size: 12px; }
 }
 
 @media (max-width: 400px) {
   .dash-summary-grid { grid-template-columns: 1fr; }
-  .summary-card__value { font-size: var(--text-base); }
+  .summary-card__value { font-size: 14px; }
 }
 
 @media (min-width: 769px) {

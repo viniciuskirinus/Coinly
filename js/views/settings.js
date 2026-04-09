@@ -66,16 +66,19 @@ function buildAccordion(key, title, contentFn) {
 
 // ─── People Section ───
 
+function isMobile() { return window.innerWidth <= 768; }
+
 function renderPersonCard(person) {
   if (state.editingPersonId === person.id) return renderPersonForm(person);
 
-  const card = el('div', { className: 'card', style: { marginBottom: 'var(--sp-4)', borderLeft: `4px solid ${person.color || 'var(--accent)'}` } });
-  const row = el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--sp-4)' } });
+  const mob = isMobile();
+  const card = el('div', { className: 'card', style: { marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-4)', borderLeft: `4px solid ${person.color || 'var(--accent)'}` } });
+  const row = el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--sp-2)' } });
 
   const info = el('div', { style: { flex: '1', minWidth: '0' } });
   info.append(
-    el('div', { style: { fontWeight: '700', fontSize: 'var(--text-lg)', marginBottom: 'var(--sp-2)', textTransform: 'capitalize' } }, person.name),
-    el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 'var(--sp-2)', fontSize: 'var(--text-sm)' } },
+    el('div', { style: { fontWeight: '700', fontSize: mob ? '14px' : 'var(--text-lg)', marginBottom: 'var(--sp-1)', textTransform: 'capitalize' } }, person.name),
+    el('div', { style: { display: 'grid', gridTemplateColumns: mob ? '1fr 1fr' : 'repeat(auto-fill, minmax(140px, 1fr))', gap: mob ? '2px 8px' : 'var(--sp-2)', fontSize: mob ? '11px' : 'var(--text-sm)' } },
       el('div', {}, el('span', { style: { color: 'var(--text-secondary)' } }, 'Salário: '), el('strong', {}, formatCurrency(person.salary || 0))),
       el('div', {}, el('span', { style: { color: 'var(--text-secondary)' } }, 'Meta: '), el('strong', {}, formatCurrency(person.monthlyGoal || 0))),
       el('div', {}, el('span', { style: { color: 'var(--text-secondary)' } }, 'Fech.: '), el('strong', {}, `Dia ${person.creditCard?.closingDay || '-'}`)),
@@ -98,10 +101,11 @@ function renderPersonForm(person) {
   const isNew = !person;
   const data = person || { id: nextId(state.config.people), name: '', salary: 0, savingsGoal: 0, monthlyGoal: 0, color: '#3949ab', creditCard: { closingDay: 5, paymentDay: 10 } };
 
-  const card = el('div', { className: 'card', style: { marginBottom: 'var(--sp-4)', borderLeft: '4px solid var(--accent)' } });
-  const title = el('div', { style: { fontWeight: '700', fontSize: 'var(--text-lg)', marginBottom: 'var(--sp-4)' } }, isNew ? 'Nova Pessoa' : `Editando: ${data.name}`);
+  const mob = isMobile();
+  const card = el('div', { className: 'card', style: { marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-4)', borderLeft: '4px solid var(--accent)' } });
+  const title = el('div', { style: { fontWeight: '700', fontSize: mob ? '14px' : 'var(--text-lg)', marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-4)' } }, isNew ? 'Nova Pessoa' : `Editando: ${data.name}`);
   const form = el('div');
-  const grid = el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--sp-4)' } });
+  const grid = el('div', { style: { display: 'grid', gridTemplateColumns: mob ? '1fr 1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: mob ? 'var(--sp-2)' : 'var(--sp-4)' } });
 
   grid.append(
     buildFormGroup('Nome *', el('input', { className: 'form-input', type: 'text', value: data.name, id: `person-name-${data.id}`, placeholder: 'Nome da pessoa', required: 'true' })),
@@ -236,9 +240,10 @@ function renderCategoryForm(cat, type, index) {
   const formId = `cat-${type}-${isNew ? 'new' : index}`;
   let subs = [...(data.subcategories || [])];
 
-  const wrapper = el('div', { className: 'card', style: { marginBottom: 'var(--sp-2)', padding: 'var(--sp-4)', border: '2px solid var(--accent)' } });
-  const title = el('div', { style: { fontWeight: '700', marginBottom: 'var(--sp-4)' } }, isNew ? 'Nova Categoria' : `Editando: ${data.name}`);
-  const grid = el('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 'var(--sp-4)' } });
+  const mob = isMobile();
+  const wrapper = el('div', { className: 'card', style: { marginBottom: 'var(--sp-2)', padding: mob ? 'var(--sp-3)' : 'var(--sp-4)', border: '2px solid var(--accent)' } });
+  const title = el('div', { style: { fontWeight: '700', marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-4)', fontSize: mob ? '13px' : 'inherit' } }, isNew ? 'Nova Categoria' : `Editando: ${data.name}`);
+  const grid = el('div', { style: { display: 'grid', gridTemplateColumns: mob ? '1fr 1fr 1fr' : 'repeat(auto-fill, minmax(150px, 1fr))', gap: mob ? 'var(--sp-2)' : 'var(--sp-4)' } });
   grid.append(
     buildFormGroup('Nome *', el('input', { className: 'form-input', type: 'text', value: data.name, id: `${formId}-name`, placeholder: 'Nome da categoria' })),
     buildFormGroup('Ícone', el('input', { className: 'form-input', type: 'text', value: data.icon, id: `${formId}-icon`, placeholder: '📁', style: { width: '60px' } })),
@@ -619,12 +624,13 @@ function buildDatabaseContent(container) {
 
 function buildThemeToggle() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const mob = isMobile();
 
   const row = el('div', {
     className: 'card',
     style: {
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: 'var(--sp-4) var(--sp-5)', marginBottom: 'var(--sp-3)', cursor: 'pointer'
+      padding: mob ? 'var(--sp-3) var(--sp-4)' : 'var(--sp-4) var(--sp-5)', marginBottom: mob ? 'var(--sp-2)' : 'var(--sp-3)', cursor: 'pointer'
     },
     onClick: () => {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
